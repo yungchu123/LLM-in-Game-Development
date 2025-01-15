@@ -1,0 +1,51 @@
+# Byte-compiled files
+*.py[cod]
+__pycache__/
+*.pyo
+
+# Virtual environments
+venv/
+env/
+
+# IDE and editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs and debug files
+*.log
+
+# Pygame-specific
+# Exclude large asset files if needed (optional)
+assets/*.bak
+assets/**/*.bak
+
+# Environment variables
+.env
+
+# Cache and temp files
+*.egg-info/
+*.cache/
+*.tmp
+
+# Generated files
+*.pyd
+*.dll
+*.so
+
+# Testing and coverage files
+.coverage
+*.cover
+.tox/
+
+# Python Wheels
+*.whl
+
+# Build artifacts
+build/
+dist/
