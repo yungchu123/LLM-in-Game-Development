@@ -40,9 +40,25 @@ class WildFlower(Generic):
         super().__init__(pos, surf, groups)
         self.hitbox = self.rect.copy().inflate(-20,-self.rect.height * 0.9)
 
+class Particle(Generic):
+    def __init__(self, pos, surf, groups, z, duration = 200):
+        super().__init__(pos, surf, groups, z)
+        self.timer = Timer(duration, self.kill) # removes particle after timer times out
+        self.timer.activate()
+
+        # white surface 
+        mask_surf = pygame.mask.from_surface(self.image)
+        new_surf = mask_surf.to_surface()
+        new_surf.set_colorkey((0,0,0))
+        self.image = new_surf
+
+    def update(self,dt):
+        self.timer.update()
+
 class Tree(Generic):
     def __init__(self, pos, surf, groups, name):
         super().__init__(pos, surf, groups)
+        self.all_sprites = self.groups()[0]
         
         # tree attributes
         self.health = 5
@@ -65,11 +81,17 @@ class Tree(Generic):
         # remove an apple
         if len(self.apple_sprites.sprites()) > 0:
             random_apple = choice(self.apple_sprites.sprites())
+            Particle(
+                pos = random_apple.rect.topleft,
+                surf = random_apple.image, 
+                groups = self.all_sprites, 
+                z = LAYERS['fruit'])
             random_apple.kill()
     
     def check_death(self):
         if self.health <= 0:
             print('tree chopped')
+            Particle(self.rect.topleft, self.image, self.all_sprites, LAYERS['fruit'], 300)
             self.image = self.stump_surf
             self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
             self.hitbox = self.rect.copy().inflate(-10,-self.rect.height * 0.6)
@@ -88,5 +110,5 @@ class Tree(Generic):
                 Generic(
                     pos = (x,y), 
                     surf = self.apple_surf, 
-                    groups = [self.apple_sprites,self.groups()[0]], # self.groups()[0] is for rendering of all_sprites
+                    groups = [self.apple_sprites,self.all_sprites],
                     z = LAYERS['fruit'])
