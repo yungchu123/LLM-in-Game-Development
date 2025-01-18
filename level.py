@@ -8,7 +8,7 @@ from random import randint
 from pytmx.util_pygame import load_pygame
 from transition import Transition
 from soil import SoilLayer
-from sky import Rain
+from sky import Rain, Sky
 
 class Level:
     def __init__(self):
@@ -30,6 +30,7 @@ class Level:
         # sky
         self.rain = Rain(self.all_sprites)
         self.raining = False
+        self.sky = Sky()
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -94,7 +95,6 @@ class Level:
         self.player.item_inventory[item] += amount
         print(f'{item} added. New inventory: {self.player.item_inventory}')
 
-    # harvest full-grown plant on collision
     def plant_collision(self):
         if self.soil_layer.plant_sprites:
             for plant in self.soil_layer.plant_sprites.sprites():
@@ -110,7 +110,12 @@ class Level:
         
         # soil
         self.soil_layer.remove_water()      # remove soil water
-        self.raining = True    # randomise rain effect
+        
+        # weather
+        self.raining = randint(0,10) > 7    # randomise rain effect
+
+        # night to day transition
+        self.sky.reset()
 
         # reset apples on the trees
         for tree in self.tree_sprites.sprites():
@@ -119,10 +124,12 @@ class Level:
             tree.create_fruit()
 
     def run(self,dt):
+        
+        # drawing logic
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
-        self.all_sprites.update(dt) # Calls update() on all children
-        self.plant_collision()
+        self.all_sprites.update(dt) # calls update() on all children
+        self.plant_collision()      # harvest full-grown plant on collision
         
         self.overlay.display()
         
@@ -130,6 +137,9 @@ class Level:
         if self.raining:
             self.rain.update()
             self.soil_layer.water_all()
+        
+        # day to night transition
+        self.sky.display(dt)
         
         # player sleep transition
         if self.player.sleep:
