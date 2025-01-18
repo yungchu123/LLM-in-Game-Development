@@ -90,6 +90,9 @@ class Level:
 
     def reset(self):
 
+        # remove soil water
+        self.soil_layer.remove_water()
+
         # reset apples on the trees
         for tree in self.tree_sprites.sprites():
             for apple in tree.apple_sprites.sprites():
