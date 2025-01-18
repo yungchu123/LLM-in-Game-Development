@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from player import Player
 from overlay import Overlay
-from sprites import Generic, Water, WildFlower, Tree, Interaction
+from sprites import Generic, Water, WildFlower, Tree, Interaction, Particle
 from support import *
 from random import randint
 from pytmx.util_pygame import load_pygame
@@ -92,7 +92,17 @@ class Level:
 
     def player_add(self, item, amount):
         self.player.item_inventory[item] += amount
-        print(self.player.item_inventory)
+        print(f'{item} added. New inventory: {self.player.item_inventory}')
+
+    # harvest full-grown plant on collision
+    def plant_collision(self):
+        if self.soil_layer.plant_sprites:
+            for plant in self.soil_layer.plant_sprites.sprites():
+                if plant.harvestable and plant.rect.colliderect(self.player.hitbox):
+                    self.player_add(plant.plant_type, 1)
+                    plant.kill()
+                    Particle(plant.rect.topleft, plant.image, self.all_sprites, z = LAYERS['main'])
+                    self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
 
     def reset(self):
         # plants
@@ -100,7 +110,7 @@ class Level:
         
         # soil
         self.soil_layer.remove_water()      # remove soil water
-        self.raining = randint(0,10) > 5    # randomise rain effect
+        self.raining = True    # randomise rain effect
 
         # reset apples on the trees
         for tree in self.tree_sprites.sprites():
@@ -112,6 +122,7 @@ class Level:
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
         self.all_sprites.update(dt) # Calls update() on all children
+        self.plant_collision()
         
         self.overlay.display()
         
