@@ -95,7 +95,9 @@ class Level:
         print(self.player.item_inventory)
 
     def reset(self):
-
+        # plants
+        self.soil_layer.update_plants()
+        
         # soil
         self.soil_layer.remove_water()      # remove soil water
         self.raining = randint(0,10) > 5    # randomise rain effect
