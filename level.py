@@ -9,6 +9,7 @@ from pytmx.util_pygame import load_pygame
 from transition import Transition
 from soil import SoilLayer
 from sky import Rain, Sky
+from menu import Menu
 
 class Level:
     def __init__(self):
@@ -31,6 +32,10 @@ class Level:
         self.rain = Rain(self.all_sprites)
         self.raining = False
         self.sky = Sky()
+        
+        # shop
+        self.menu = Menu(self.player, self.toggle_shop)
+        self.shop_active = False
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -79,9 +84,13 @@ class Level:
                     collision_sprites = self.collision_sprites,
                     tree_sprites = self.tree_sprites,
                     interaction_sprites = self.interaction_sprites,
-                    soil_layer = self.soil_layer)
+                    soil_layer = self.soil_layer,
+                    toggle_shop = self.toggle_shop)
             
             if obj.name == 'Bed':
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, obj.name)
+            
+            if obj.name == 'Trader':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, obj.name)
         
         # Ground Sprite (Floor)
@@ -94,6 +103,9 @@ class Level:
     def player_add(self, item, amount):
         self.player.item_inventory[item] += amount
         print(f'{item} added. New inventory: {self.player.item_inventory}')
+
+    def toggle_shop(self):
+        self.shop_active = not self.shop_active
 
     def plant_collision(self):
         if self.soil_layer.plant_sprites:
@@ -128,13 +140,19 @@ class Level:
         # drawing logic
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
-        self.all_sprites.update(dt) # calls update() on all children
-        self.plant_collision()      # harvest full-grown plant on collision
+        
+        # updates
+        if self.shop_active:
+            self.menu.update()
+        # stop all other controls when menu is open
+        else: 
+            self.all_sprites.update(dt) # calls update() on all children
+            self.plant_collision()      # harvest full-grown plant on collision
         
         self.overlay.display()
         
         # rain
-        if self.raining:
+        if self.raining and not self.shop_active:
             self.rain.update()
             self.soil_layer.water_all()
         
