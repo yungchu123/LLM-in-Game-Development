@@ -77,6 +77,16 @@ class SoilLayer:
 
         self.create_soil_grid()
         self.create_hit_rects()
+        
+        # sounds
+        self.hoe_sound = pygame.mixer.Sound('./audio/hoe.wav')
+        self.hoe_sound.set_volume(0.1)
+
+        self.watering_sound = pygame.mixer.Sound('./audio/water.mp3')
+        self.watering_sound.set_volume(0.2)
+
+        self.plant_sound = pygame.mixer.Sound('./audio/plant.wav') 
+        self.plant_sound.set_volume(0.2)
 
     def create_soil_grid(self):
         ground = pygame.image.load('./graphics/world/ground.png')
@@ -102,9 +112,10 @@ class SoilLayer:
                 x = rect.x // TILE_SIZE
                 y = rect.y // TILE_SIZE
 
-                if 'F' in self.grid[y][x]:
+                if 'F' in self.grid[y][x] and not 'X' in self.grid[y][x]:
                     self.grid[y][x].append('X')
                     self.create_soil_tiles()
+                    self.hoe_sound.play()
     
     def water(self, target_pos):
         for soil_sprite in self.soil_sprites.sprites():
@@ -117,6 +128,8 @@ class SoilLayer:
                 pos = soil_sprite.rect.topleft
                 surf = choice(self.water_surfs)
                 WaterTile(pos, surf, [self.all_sprites, self.water_sprites])
+                
+                self.watering_sound.play()
     
     def water_all(self):
         for index_row, row in enumerate(self.grid):
@@ -156,6 +169,7 @@ class SoilLayer:
                 if 'P' not in self.grid[y][x]:
                     self.grid[y][x].append('P')
                     Plant(seed, [self.all_sprites, self.plant_sprites], soil_sprite, self.check_watered)
+                    self.plant_sound.play()
                     print('seed planted')
     
     def update_plants(self):

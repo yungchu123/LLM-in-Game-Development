@@ -157,7 +157,6 @@ class Player(pygame.sprite.Sprite):
             
             # interact with interaction sprites
             if keys[pygame.K_RETURN]:
-                self.toggle_shop()
                 collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction_sprites,False)
                 if collided_interaction_sprite:
                     if collided_interaction_sprite[0].name == 'Trader':
