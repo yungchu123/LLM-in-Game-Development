@@ -11,6 +11,7 @@ from soil import SoilLayer
 from sky import Rain, Sky
 from menu import Menu
 from dialogue import Dialogue_Menu
+from conversational_llm import ConversationalLLM
 
 class Level:
     def __init__(self):
@@ -39,7 +40,8 @@ class Level:
         self.shop_active = False
         
         # dialogue
-        self.dialogue = Dialogue_Menu(self.player, self.toggle_dialogue)
+        self.conversational_llm = ConversationalLLM()
+        self.dialogue = Dialogue_Menu(self.toggle_dialogue)
         self.dialogue_active = False
         
         # audio
@@ -163,7 +165,7 @@ class Level:
         if self.shop_active:
             self.menu.update()
         elif self.dialogue_active:
-            self.dialogue.update(events)
+            self.dialogue.update(events, self.conversational_llm.get_response)
         # stop all other controls when menu is open
         else: 
             self.all_sprites.update(dt) # calls update() on all children

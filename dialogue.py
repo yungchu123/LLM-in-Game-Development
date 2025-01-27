@@ -2,19 +2,13 @@ import pygame
 from settings import *
 
 class Dialogue_Menu:
-    def __init__(self, player, toggle_dialogue_menu):
+    def __init__(self, toggle_dialogue_menu):
         
         # general setup
-        self.player = player
         self.toggle_dialogue_menu = toggle_dialogue_menu
         self.display_surface = pygame.display.get_surface()
         self.font = pygame.font.Font('./font/LycheeSoda.ttf', 30)
-        
-        # text options
-        self.width = 400
-        self.space = 10
-        self.padding = 8
-        
+
         self.message = "Hello"
         self.input_text = ""    # Get player input
         
@@ -50,7 +44,7 @@ class Dialogue_Menu:
         input_surface = self.font.render(self.input_text, True, BLACK)
         self.display_surface.blit(input_surface, (input_box_rect.x + 10, input_box_rect.y + 10))
 
-    def input(self, events):
+    def input(self, events, get_response):
         for event in events:
             if event.type == pygame.KEYDOWN:  
                 # Exit dialogue menu
@@ -61,13 +55,15 @@ class Dialogue_Menu:
                     self.input_text = self.input_text[:-1]
                 # Submit user input
                 elif event.key == pygame.K_RETURN:      
-                    print(self.input_text)
+                    print(f'You: {self.input_text}')
+                    self.message = get_response(self.input_text)
+                    print(f'NPC: {self.message}')
                     self.input_text = ""
                 # Add the Unicode character of the key pressed
                 else:
                     self.input_text += event.unicode
         
-    def update(self, events):
-        self.input(events)
+    def update(self, events, get_response):
+        self.input(events, get_response)
         self.draw_chatbox()
         self.draw_input_box()
