@@ -4,7 +4,7 @@ from support import *
 from timer import Timer
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, toggle_dialogue):
         super().__init__(group)
 
         self.import_assets()
@@ -62,6 +62,7 @@ class Player(pygame.sprite.Sprite):
         self.sleep = False
         self.soil_layer = soil_layer
         self.toggle_shop = toggle_shop
+        self.toggle_dialogue = toggle_dialogue
 
     def use_tool(self):
         print(f'tool use: {self.selected_tool}')
@@ -157,6 +158,7 @@ class Player(pygame.sprite.Sprite):
             
             # interact with interaction sprites
             if keys[pygame.K_RETURN]:
+                self.toggle_dialogue()
                 collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction_sprites,False)
                 if collided_interaction_sprite:
                     if collided_interaction_sprite[0].name == 'Trader':

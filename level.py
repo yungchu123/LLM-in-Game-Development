@@ -10,6 +10,7 @@ from transition import Transition
 from soil import SoilLayer
 from sky import Rain, Sky
 from menu import Menu
+from dialogue import Dialogue_Menu
 
 class Level:
     def __init__(self):
@@ -36,6 +37,10 @@ class Level:
         # shop
         self.menu = Menu(self.player, self.toggle_shop)
         self.shop_active = False
+        
+        # dialogue
+        self.dialogue = Dialogue_Menu(self.player, self.toggle_dialogue)
+        self.dialogue_active = False
         
         # audio
         self.success_sound = pygame.mixer.Sound('./audio/success.wav')
@@ -92,7 +97,8 @@ class Level:
                     tree_sprites = self.tree_sprites,
                     interaction_sprites = self.interaction_sprites,
                     soil_layer = self.soil_layer,
-                    toggle_shop = self.toggle_shop)
+                    toggle_shop = self.toggle_shop,
+                    toggle_dialogue = self.toggle_dialogue)
             
             if obj.name == 'Bed':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, obj.name)
@@ -114,6 +120,9 @@ class Level:
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
+
+    def toggle_dialogue(self):
+        self.dialogue_active = not self.dialogue_active
 
     def plant_collision(self):
         if self.soil_layer.plant_sprites:
@@ -143,21 +152,23 @@ class Level:
                 apple.kill()
             tree.create_fruit()
 
-    def run(self,dt):
+    def run(self,dt,events):
         
         # drawing logic
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
+        self.overlay.display()
         
         # updates
         if self.shop_active:
             self.menu.update()
+        elif self.dialogue_active:
+            self.dialogue.update(events)
         # stop all other controls when menu is open
         else: 
             self.all_sprites.update(dt) # calls update() on all children
             self.plant_collision()      # harvest full-grown plant on collision
-        
-        self.overlay.display()
+
         
         # rain
         if self.raining and not self.shop_active:

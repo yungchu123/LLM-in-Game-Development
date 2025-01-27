@@ -51,3 +51,14 @@ PURCHASE_PRICES = {
     'corn': 4,
     'tomato': 5
 }
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREY = (50, 50, 50)
+LIGHT_GREY = (200, 200, 200)
+
+# Chatbox Dimensions
+CHATBOX_HEIGHT = 200
+CHATBOX_MARGIN = 20
+INPUT_BOX_HEIGHT = 50
