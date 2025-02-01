@@ -12,6 +12,8 @@ from sky import Rain, Sky
 from menu import Menu
 from dialogue import Dialogue_Menu
 from conversational_llm import ConversationalLLM
+from autonomous_npc import Autonomous_NPC
+from timer import Timer
 
 class Level:
     def __init__(self):
@@ -50,6 +52,9 @@ class Level:
         self.background_music = pygame.mixer.Sound('./audio/music.mp3')
         self.background_music.set_volume(0.1)
         self.background_music.play(loops = -1)
+        
+        # Timer for npc
+        self.npc_timer = Timer(500)
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -114,6 +119,9 @@ class Level:
             surf = pygame.image.load('./graphics/world/ground.png').convert_alpha(),
             groups = self.all_sprites,
             z = LAYERS['ground'])
+        
+        # Autonomous NPC
+        self.autonomous_npc = Autonomous_NPC(pos = (1561.33, 1772.0), group = self.all_sprites, collision_sprites = self.collision_sprites)
 
     def player_add(self, item, amount):
         self.player.item_inventory[item] += amount
@@ -183,6 +191,15 @@ class Level:
         # player sleep transition
         if self.player.sleep:
             self.transition.play()
+            
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_f] and not self.npc_timer.active:
+            self.autonomous_npc.get_input('move to the pos (1118, 1826)') # original position is (1561,1772)
+            self.npc_timer.activate()
+        if keys[pygame.K_g] and not self.npc_timer.active:
+            self.autonomous_npc.get_input('move to the position (1761,1972)')    
+            self.npc_timer.activate()
+        self.npc_timer.update()
         
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
