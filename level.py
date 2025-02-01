@@ -178,7 +178,6 @@ class Level:
         else: 
             self.all_sprites.update(dt) # calls update() on all children
             self.plant_collision()      # harvest full-grown plant on collision
-
         
         # rain
         if self.raining and not self.shop_active:
@@ -194,7 +193,7 @@ class Level:
             
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:
-            self.autonomous_npc.get_input('move to the pos (1118, 1826)') # original position is (1561,1772)
+            self.autonomous_npc.get_input('move to the pos (1443, 1450). Then move to (1561,1315).') # original position is (1561,1772)
             self.npc_timer.activate()
         if keys[pygame.K_g] and not self.npc_timer.active:
             self.autonomous_npc.get_input('move to the position (1761,1972)')    

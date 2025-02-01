@@ -32,8 +32,8 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # handle npc movements
         self.create_collision_grid()
         self.path = []
-        self.stepx = 0
-        self.stepy = 0
+        self.stepx = 0         # X distance from destination 
+        self.stepy = 0         # Y distance from destination 
         
         # npc set up
         self.npc_setup()
@@ -172,13 +172,18 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         Make the character to end position with x and y coordinate in a 2D vector space"""
         print("move to tool is used")
         self.path = find_path(self.grid, start={'x': self.pos.x, 'y': self.pos.y}, end={'x': endx, 'y': endy})
-        self.update_steps()
-        print(self.stepx, self.stepy)
-        while True:
-            if self.stepx == 0 and self.stepy == 0:
-                break
+        duration = 500 * len(self.path)
+        self.timer_wrapper(duration)
         print("tools completed successfully")
-        
+        print(f"The current position is {self.pos.x}, {self.pos.y}")
+    
+    def timer_wrapper(self, duration):
+        # Create delay in lang chain tools calling
+        llm_timer = Timer(duration)
+        llm_timer.activate()
+        while llm_timer.active:
+            llm_timer.update()
+    
     def update_steps(self):
         if not self.path or self.stepx != 0 or self.stepy != 0:
             return
@@ -205,34 +210,35 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             self.status = 'left'
     
     def move(self, dt):
-        # print(self.stepx, self.stepy, self.pos.x, self.pos.y)
         if self.stepx > 0:
-            move_x = self.speed * dt * self.direction.x
+            move_x = min(self.speed * dt, self.stepx) * self.direction.x
             self.pos.x = int(self.pos.x + move_x)
             self.hitbox.centerx = round(self.pos.x)
             self.rect.centerx = self.hitbox.centerx
             self.collision('horizontal')
             
             self.stepx -= abs(move_x)
-            if self.stepx < 0: 
+            if self.stepx <= 0: 
                 self.stepx = 0
                 self.direction.x = 0
 
         if self.stepy > 0:
-            move_y = self.speed * dt * self.direction.y
+            move_y = min(self.speed * dt, self.stepy) * self.direction.y
             self.pos.y = int(self.pos.y + move_y)
             self.hitbox.centery = round(self.pos.y)
             self.rect.centery = self.hitbox.centery
             self.collision('vertical')
             
             self.stepy -= abs(move_y)
-            if self.stepy < 0: 
+            if self.stepy <= 0: 
                 self.stepy = 0
                 self.direction.y = 0
     
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
-        self.agent = create_react_agent(llm, tools=[StructuredTool.from_function(self.move_to)])
+        tools = [StructuredTool.from_function(self.move_to)]
+        llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
+        self.agent = create_react_agent(llm_with_tools, tools=tools)
         self.conversation_history = []
         
     def scheduled_input(self, query):
