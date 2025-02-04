@@ -16,9 +16,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites
-                 #, , tree_sprites, interaction_sprites, soil_layer, toggle_shop, toggle_dialogue
-                ):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
         super().__init__(group)
 
         self.import_assets()
@@ -54,22 +52,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         
         # timers
         self.timers =  {
-            'tool use': Timer(1000, self.use_tool),
-            'tool switch': Timer(200),
-            'seed use': Timer(1000, self.use_seed),
-            'seed switch': Timer(200)
+            'tool use': Timer(1000),
+            'seed use': Timer(1000)
         }
-        
-        # tools
-        self.tools = ['hoe', 'axe', 'water']
-        self.tool_index = 0
-        self.selected_tool = self.tools[self.tool_index]
-        
-        # seeds
-        self.seeds = ['corn', 'tomato']
-        self.seed_index = 0
-        self.selected_seed = self.seeds[self.seed_index]
-        
+         
         # inventory
         self.item_inventory = {
             'wood':   0,
@@ -84,12 +70,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.money = 200
         
         # interaction
-        # self.tree_sprites = tree_sprites
-        # self.interaction_sprites = interaction_sprites
-        # self.sleep = False
-        # self.soil_layer = soil_layer
-        # self.toggle_shop = toggle_shop
-        # self.toggle_dialogue = toggle_dialogue
+        self.tree_sprites = tree_sprites
+        self.interaction_sprites = interaction_sprites
+        self.sleep = False
+        self.soil_layer = soil_layer
     
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -103,27 +87,9 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             full_path = './graphics/character/' + animation
             self.animations[animation] = import_folder(full_path)
     
-    def use_tool(self):
-        if self.selected_tool == 'hoe':
-            self.soil_layer.get_hit(self.target_pos)
-        
-        if self.selected_tool == 'axe':
-            for tree in self.tree_sprites.sprites():
-                if tree.rect.collidepoint(self.target_pos):
-                    tree.damage()
-        
-        if self.selected_tool == 'water':
-            self.soil_layer.water(self.target_pos)
-    
     def get_target_pos(self):
 
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
-    
-    def use_seed(self):
-        
-        if self.seed_inventory[self.selected_seed] > 0:
-            self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
-            self.seed_inventory[self.selected_seed] -= 1
     
     def collision(self, direction):
         for sprite in self.collision_sprites.sprites():
@@ -164,6 +130,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         if self.timers['tool use'].active:
             self.status = self.status.split('_')[0] + '_' + self.selected_tool
     
+    def update_timers(self):
+        for timer in self.timers.values():
+            timer.update()
+    
     def create_collision_grid(self):
         ground = pygame.image.load('./graphics/world/ground.png')
         h_tiles, v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
@@ -176,15 +146,52 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         """
         Make the character to end position with x and y coordinate in a 2D vector space
         """
-        print("move to tool is used")
         self.path = find_path(self.grid, start={'x': self.pos.x, 'y': self.pos.y}, end={'x': endx, 'y': endy})
         # while True:
         #     if not len(self.path) and not self.stepx and not self.stepy:
         #         break
         duration = 500 * len(self.path)
         self.timer_wrapper(duration)
-        print("tools completed successfully")
-        print(f"The current position is {self.pos.x}, {self.pos.y}")
+        return f"The current position is {self.pos.x}, {self.pos.y}"
+    
+    def use_tool(self, tool):
+        """
+        Use a tool. The tools can be 
+        1. hoe (to cultivate a soil into farmable land)
+        2. axe (to chop trees)
+        3. water (to water a farmable land)
+        """
+        self.selected_tool = tool
+        
+        self.timers['tool use'].activate()
+        
+        if self.selected_tool == 'hoe':
+            self.soil_layer.get_hit(self.target_pos)
+            return "soil cultivated successfully"
+        
+        if self.selected_tool == 'axe':
+            for tree in self.tree_sprites.sprites():
+                if tree.rect.collidepoint(self.target_pos):
+                    tree.damage()
+        
+        if self.selected_tool == 'water':
+            self.soil_layer.water(self.target_pos)
+            return "soil watered successfully"
+    
+    def use_seed(self, seed) -> str:
+        """
+        Plant a seed on a cultivated soil. The seeds can be 
+        1. corn
+        2. tomato
+        """
+        self.timers['seed use'].activate()
+        
+        if self.seed_inventory[seed] > 0:
+            self.soil_layer.plant_seed(self.target_pos, seed)
+            self.seed_inventory[seed] -= 1
+            return f"{seed} seed is planted successfully"
+        else:
+            return f"not even {seed} seed in inventory"
     
     def timer_wrapper(self, duration):
         # Create delay in lang chain tools calling
@@ -245,7 +252,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
     
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
-        tools = [StructuredTool.from_function(self.move_to)]
+        tools = [
+            StructuredTool.from_function(self.move_to), 
+            StructuredTool.from_function(self.use_tool),
+            StructuredTool.from_function(self.use_seed)]
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
         self.conversation_history = []
@@ -257,7 +267,8 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             {"messages": [HumanMessage(query)]},
             {"recursion_limit": 10}
         )
-        print(result)
+        for m in result['messages']:
+            m.pretty_print()
     
     def get_input(self, query, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
@@ -266,7 +277,9 @@ class Autonomous_NPC(pygame.sprite.Sprite):
     
     def update(self, dt):
         self.get_status()
+        self.update_timers()
         self.update_steps()
+        self.get_target_pos()
+        
         self.move(dt)
         self.animate(dt)
-        

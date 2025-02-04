@@ -121,7 +121,13 @@ class Level:
             z = LAYERS['ground'])
         
         # Autonomous NPC
-        self.autonomous_npc = Autonomous_NPC(pos = (1561.33, 1772.0), group = self.all_sprites, collision_sprites = self.collision_sprites)
+        self.autonomous_npc = Autonomous_NPC(
+                                pos = (1561.33, 1772.0), 
+                                group = self.all_sprites, 
+                                collision_sprites = self.collision_sprites,
+                                tree_sprites = self.tree_sprites,
+                                interaction_sprites = self.interaction_sprites,
+                                soil_layer = self.soil_layer,)
 
     def player_add(self, item, amount):
         self.player.item_inventory[item] += amount
@@ -197,6 +203,9 @@ class Level:
             self.npc_timer.activate()
         if keys[pygame.K_g] and not self.npc_timer.active:
             self.autonomous_npc.get_input('move to the position (1761,1972)')    
+            self.npc_timer.activate()
+        if keys[pygame.K_h] and not self.npc_timer.active:
+            self.autonomous_npc.get_input('cultivate the land at (1761,1972). then water it, then plant a corn seed on it')    
             self.npc_timer.activate()
         self.npc_timer.update()
         

@@ -27,8 +27,7 @@ class WaterTile(pygame.sprite.Sprite):
 
 class Plant(pygame.sprite.Sprite):
     def __init__(self, plant_type, groups, soil, check_watered):
-        super().__init__(groups)
-        
+
         # setup
         self.plant_type = plant_type
         self.frames = import_folder(f'./graphics/fruit/{plant_type}')
@@ -46,6 +45,7 @@ class Plant(pygame.sprite.Sprite):
         self.y_offset = -16 if plant_type == 'corn' else -8
         self.rect = self.image.get_rect(midbottom = soil.rect.midbottom + pygame.math.Vector2(0,self.y_offset))
         self.z = LAYERS['ground plant']
+        super().__init__(groups)
 
     def grow(self):
         if self.check_watered(self.rect.center):
@@ -60,7 +60,6 @@ class Plant(pygame.sprite.Sprite):
 
             self.image = self.frames[int(self.age)]
             self.rect = self.image.get_rect(midbottom = self.soil.rect.midbottom + pygame.math.Vector2(0,self.y_offset))
-
 
 class SoilLayer:
     def __init__(self, all_sprites):
