@@ -127,3 +127,17 @@ class Tree(Generic):
                     surf = self.apple_surf, 
                     groups = [self.apple_sprites,self.all_sprites],
                     z = LAYERS['fruit'])
+                
+class TextSprite(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, text="Hello!"):
+        super().__init__(groups)
+        font = pygame.font.Font(None, 30)
+        self.text = text
+        self.pos = pos
+        self.z = LAYERS['main']
+        self.image = font.render(self.text, True, WHITE)
+        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y - 40))  # Above the character
+
+    def update(self, dt):
+        # Update position above the character
+        self.rect.center = (self.pos.x, self.pos.y - 40)

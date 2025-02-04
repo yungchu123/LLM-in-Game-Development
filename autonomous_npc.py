@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
+from sprites import TextSprite
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
 
@@ -42,6 +43,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 200
+        
+        # text setup
+        self.name = "NPC"
+        self.name_text = TextSprite(self.pos, group, self.name)
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))
@@ -168,10 +173,14 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             self.grid[y][x].append('C')
     
     def move_to(self, endx, endy):
-        """Invoke this tool Asynchronously.
-        Make the character to end position with x and y coordinate in a 2D vector space"""
+        """
+        Make the character to end position with x and y coordinate in a 2D vector space
+        """
         print("move to tool is used")
         self.path = find_path(self.grid, start={'x': self.pos.x, 'y': self.pos.y}, end={'x': endx, 'y': endy})
+        # while True:
+        #     if not len(self.path) and not self.stepx and not self.stepy:
+        #         break
         duration = 500 * len(self.path)
         self.timer_wrapper(duration)
         print("tools completed successfully")

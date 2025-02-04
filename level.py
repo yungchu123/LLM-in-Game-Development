@@ -180,7 +180,7 @@ class Level:
             self.plant_collision()      # harvest full-grown plant on collision
         
         # rain
-        if self.raining and not self.shop_active:
+        if self.raining and not self.shop_active and not self.dialogue_active:
             self.rain.update()
             self.soil_layer.water_all()
         

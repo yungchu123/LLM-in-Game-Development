@@ -2,6 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
+from sprites import TextSprite
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, toggle_dialogue):
@@ -20,6 +21,10 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 200
+        
+        # text setup
+        self.name = "Player"
+        self.name_text = TextSprite(self.pos, group, self.name)
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))
