@@ -197,17 +197,17 @@ class Level:
         if self.player.sleep:
             self.transition.play()
             
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_f] and not self.npc_timer.active:
-            self.autonomous_npc.get_input('move to the pos (1443, 1450). Then move to (1561,1315).') # original position is (1561,1772)
-            self.npc_timer.activate()
-        if keys[pygame.K_g] and not self.npc_timer.active:
-            self.autonomous_npc.get_input('move to the position (1761,1972)')    
-            self.npc_timer.activate()
-        if keys[pygame.K_h] and not self.npc_timer.active:
-            self.autonomous_npc.get_input('cultivate the land at (1761,1972). then water it, then plant a corn seed on it')    
-            self.npc_timer.activate()
-        self.npc_timer.update()
+        # keys = pygame.key.get_pressed()
+        # if keys[pygame.K_f] and not self.npc_timer.active:
+        #     self.autonomous_npc.get_input('move to the pos (1443, 1450). Then move to (1561,1315).') # original position is (1561,1772)
+        #     self.npc_timer.activate()
+        # if keys[pygame.K_g] and not self.npc_timer.active:
+        #     self.autonomous_npc.get_input('move to the position (1761,1972)')    
+        #     self.npc_timer.activate()
+        # if keys[pygame.K_h] and not self.npc_timer.active:
+        #     self.autonomous_npc.get_input('cultivate the land at (1761,1972). then water it, then plant a corn seed on it')    
+        #     self.npc_timer.activate()
+        # self.npc_timer.update()
         
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):

@@ -161,9 +161,11 @@ class Player(pygame.sprite.Sprite):
                 self.seed_index = (self.seed_index + 1) % len(self.seeds)
                 self.selected_seed = self.seeds[self.seed_index]
             
-            # interact with interaction sprites
             if keys[pygame.K_RETURN]:
                 self.toggle_dialogue()
+            
+            # interact with interaction sprites
+            if keys[pygame.K_n]:
                 collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction_sprites,False)
                 if collided_interaction_sprite:
                     if collided_interaction_sprite[0].name == 'Trader':

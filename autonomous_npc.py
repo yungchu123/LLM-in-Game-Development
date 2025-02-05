@@ -135,10 +135,11 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             timer.update()
     
     def create_collision_grid(self):
+        # Use for calculating path for movement
         ground = pygame.image.load('./graphics/world/ground.png')
         h_tiles, v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
         
-        self.grid = [[[] for col in range(h_tiles)] for row in range(v_tiles)]
+        self.grid = [[[] for _ in range(h_tiles)] for _ in range(v_tiles)]
         for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Collision').tiles():
             self.grid[y][x].append('C')
     
