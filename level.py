@@ -27,6 +27,10 @@ class Level:
         self.tree_sprites = pygame.sprite.Group()           # interaction with tree sprites
         self.interaction_sprites = pygame.sprite.Group()    # empty space for interactions
   
+        # dialogue
+        self.conversational_llm = ConversationalLLM()
+        self.dialogue = Dialogue_Menu()
+  
         self.soil_layer = SoilLayer(self.all_sprites)
         self.setup()
         self.overlay = Overlay(self.player)
@@ -40,11 +44,6 @@ class Level:
         # shop
         self.menu = Menu(self.player, self.toggle_shop)
         self.shop_active = False
-        
-        # dialogue
-        self.conversational_llm = ConversationalLLM()
-        self.dialogue = Dialogue_Menu(self.toggle_dialogue)
-        self.dialogue_active = False
         
         # audio
         self.success_sound = pygame.mixer.Sound('./audio/success.wav')
@@ -94,6 +93,12 @@ class Level:
         for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
             Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
     
+        # characters
+        for obj in tmx_data.get_layer_by_name('Objects'):
+            if obj.name == "NPC":
+                img_surf = pygame.image.load('./graphics/objects/merchant.png')
+                Generic((obj.x, obj.y), img_surf, self.all_sprites)
+            
         # Player
         for obj in tmx_data.get_layer_by_name('Player'):
             if obj.name == 'Start':
@@ -105,13 +110,16 @@ class Level:
                     interaction_sprites = self.interaction_sprites,
                     soil_layer = self.soil_layer,
                     toggle_shop = self.toggle_shop,
-                    toggle_dialogue = self.toggle_dialogue)
+                    open_dialogue = self.dialogue.open_dialogue)
             
             if obj.name == 'Bed':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, obj.name)
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name})
             
             if obj.name == 'Trader':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, obj.name)
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name})
+                
+            if obj.name == 'NPC':
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name, "npc_name": obj.npc_name})
         
         # Ground Sprite (Floor)
         Generic(
@@ -136,9 +144,6 @@ class Level:
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
-
-    def toggle_dialogue(self):
-        self.dialogue_active = not self.dialogue_active
 
     def plant_collision(self):
         if self.soil_layer.plant_sprites:
@@ -178,7 +183,7 @@ class Level:
         # updates
         if self.shop_active:
             self.menu.update()
-        elif self.dialogue_active:
+        elif self.dialogue.is_active():
             self.dialogue.update(events, self.conversational_llm.get_response)
         # stop all other controls when menu is open
         else: 
@@ -186,7 +191,7 @@ class Level:
             self.plant_collision()      # harvest full-grown plant on collision
         
         # rain
-        if self.raining and not self.shop_active and not self.dialogue_active:
+        if self.raining and not self.shop_active and not self.dialogue.is_active():
             self.rain.update()
             self.soil_layer.water_all()
         

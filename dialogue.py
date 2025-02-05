@@ -3,13 +3,13 @@ import pyperclip
 from settings import *
 
 class Dialogue_Menu:
-    def __init__(self, toggle_dialogue_menu):
+    def __init__(self):
         
         # general setup
-        self.toggle_dialogue_menu = toggle_dialogue_menu
         self.display_surface = pygame.display.get_surface()
         self.font = pygame.font.Font('./font/LycheeSoda.ttf', 30)
 
+        self.active = False
         self.message = ""
         self.input_text = ""    # Get player input
         
@@ -67,7 +67,7 @@ class Dialogue_Menu:
             if event.type == pygame.KEYDOWN:  
                 # Exit dialogue menu
                 if event.key == pygame.K_ESCAPE: 
-                    self.toggle_dialogue_menu()
+                    self.active = False
                 # Remove the last character from the input text
                 elif event.key == pygame.K_BACKSPACE: 
                     self.input_text = self.input_text[:max(0, self.selection_start - 1)] + self.input_text[self.selection_end:]
@@ -105,7 +105,13 @@ class Dialogue_Menu:
                     self.input_text = self.input_text[:self.selection_start] + event.unicode + self.input_text[self.selection_end:]
                     self.selection_start += 1
                     self.selection_end = self.selection_start
+    
+    def open_dialogue(self):
+        self.active = True
         
+    def is_active(self):
+        return self.active
+    
     def update(self, events, get_response):
         self.input(events, get_response)
         self.draw_input_box()

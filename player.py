@@ -5,7 +5,7 @@ from timer import Timer
 from sprites import TextSprite
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, toggle_dialogue):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, open_dialogue):
         super().__init__(group)
 
         self.import_assets()
@@ -67,7 +67,7 @@ class Player(pygame.sprite.Sprite):
         self.sleep = False
         self.soil_layer = soil_layer
         self.toggle_shop = toggle_shop
-        self.toggle_dialogue = toggle_dialogue
+        self.open_dialogue = open_dialogue
 
     def use_tool(self):
         print(f'tool use: {self.selected_tool}')
@@ -162,17 +162,20 @@ class Player(pygame.sprite.Sprite):
                 self.selected_seed = self.seeds[self.seed_index]
             
             if keys[pygame.K_RETURN]:
-                self.toggle_dialogue()
+                self.open_dialogue()
             
             # interact with interaction sprites
             if keys[pygame.K_n]:
                 collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction_sprites,False)
                 if collided_interaction_sprite:
-                    if collided_interaction_sprite[0].name == 'Trader':
+                    if collided_interaction_sprite[0].prop['name'] == 'Trader':
                         self.toggle_shop()
-                    if collided_interaction_sprite[0].name == 'Bed':
+                    if collided_interaction_sprite[0].prop['name'] == 'Bed':
                         self.status = 'left_idle'
                         self.sleep = True
+                    if collided_interaction_sprite[0].prop['name'] == "NPC":
+                        npc_name = collided_interaction_sprite[0].prop['npc_name']
+                        print(npc_name)
             
     def get_status(self):
         # if the player is not moving
