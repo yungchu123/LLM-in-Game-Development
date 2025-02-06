@@ -5,7 +5,7 @@ from timer import Timer
 from sprites import TextSprite
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, open_dialogue):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu):
         super().__init__(group)
 
         self.import_assets()
@@ -67,7 +67,8 @@ class Player(pygame.sprite.Sprite):
         self.sleep = False
         self.soil_layer = soil_layer
         self.toggle_shop = toggle_shop
-        self.open_dialogue = open_dialogue
+        self.is_shop_active = is_shop_active
+        self.dialogue_menu = dialogue_menu
 
     def use_tool(self):
         print(f'tool use: {self.selected_tool}')
@@ -115,6 +116,9 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animations[self.status][int(self.frame_index)]
         
     def input(self):
+        if self.is_shop_active() or self.dialogue_menu.is_active():
+            return
+        
         keys = pygame.key.get_pressed()
 
         if not self.timers['tool use'].active:
@@ -162,7 +166,7 @@ class Player(pygame.sprite.Sprite):
                 self.selected_seed = self.seeds[self.seed_index]
             
             if keys[pygame.K_RETURN]:
-                self.open_dialogue()
+                self.dialogue_menu.start_npc_chat()
             
             # interact with interaction sprites
             if keys[pygame.K_n]:
@@ -175,7 +179,7 @@ class Player(pygame.sprite.Sprite):
                         self.sleep = True
                     if collided_interaction_sprite[0].prop['name'] == "NPC":
                         npc_name = collided_interaction_sprite[0].prop['npc_name']
-                        print(npc_name)
+                        self.dialogue_menu.start_npc_chat(npc_name)
             
     def get_status(self):
         # if the player is not moving

@@ -12,7 +12,7 @@ from sky import Rain, Sky
 from menu import Menu
 from dialogue import Dialogue_Menu
 from conversational_llm import ConversationalLLM
-from autonomous_npc import Autonomous_NPC
+from autonomous_npc import NPC_Manager
 from timer import Timer
 
 class Level:
@@ -26,10 +26,6 @@ class Level:
         self.collision_sprites = pygame.sprite.Group()      # sprites with collision
         self.tree_sprites = pygame.sprite.Group()           # interaction with tree sprites
         self.interaction_sprites = pygame.sprite.Group()    # empty space for interactions
-  
-        # dialogue
-        self.conversational_llm = ConversationalLLM()
-        self.dialogue = Dialogue_Menu()
   
         self.soil_layer = SoilLayer(self.all_sprites)
         self.setup()
@@ -92,13 +88,20 @@ class Level:
         # collion tiles
         for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
             Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
-    
-        # characters
-        for obj in tmx_data.get_layer_by_name('Objects'):
-            if obj.name == "NPC":
-                img_surf = pygame.image.load('./graphics/objects/merchant.png')
-                Generic((obj.x, obj.y), img_surf, self.all_sprites)
-            
+        
+        # Autonomous NPC
+        self.npc_manager = NPC_Manager(
+                                tmx_data=tmx_data, 
+                                group = self.all_sprites, 
+                                collision_sprites = self.collision_sprites,
+                                tree_sprites = self.tree_sprites,
+                                interaction_sprites = self.interaction_sprites,
+                                soil_layer = self.soil_layer)
+        
+        # dialogue
+        self.conversational_llm = ConversationalLLM()
+        self.dialogue = Dialogue_Menu(get_npc_by_name = self.npc_manager.get_npc_by_name)
+        
         # Player
         for obj in tmx_data.get_layer_by_name('Player'):
             if obj.name == 'Start':
@@ -110,7 +113,8 @@ class Level:
                     interaction_sprites = self.interaction_sprites,
                     soil_layer = self.soil_layer,
                     toggle_shop = self.toggle_shop,
-                    open_dialogue = self.dialogue.open_dialogue)
+                    is_shop_active = self.is_shop_active,
+                    dialogue_menu = self.dialogue)
             
             if obj.name == 'Bed':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name})
@@ -127,15 +131,6 @@ class Level:
             surf = pygame.image.load('./graphics/world/ground.png').convert_alpha(),
             groups = self.all_sprites,
             z = LAYERS['ground'])
-        
-        # Autonomous NPC
-        self.autonomous_npc = Autonomous_NPC(
-                                pos = (1561.33, 1772.0), 
-                                group = self.all_sprites, 
-                                collision_sprites = self.collision_sprites,
-                                tree_sprites = self.tree_sprites,
-                                interaction_sprites = self.interaction_sprites,
-                                soil_layer = self.soil_layer,)
 
     def player_add(self, item, amount):
         self.player.item_inventory[item] += amount
@@ -144,6 +139,9 @@ class Level:
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
+
+    def is_shop_active(self):
+        return self.shop_active
 
     def plant_collision(self):
         if self.soil_layer.plant_sprites:
@@ -183,15 +181,14 @@ class Level:
         # updates
         if self.shop_active:
             self.menu.update()
-        elif self.dialogue.is_active():
-            self.dialogue.update(events, self.conversational_llm.get_response)
-        # stop all other controls when menu is open
-        else: 
-            self.all_sprites.update(dt) # calls update() on all children
-            self.plant_collision()      # harvest full-grown plant on collision
+        if self.dialogue.is_active():
+            self.dialogue.update(events)
+        
+        self.all_sprites.update(dt) # calls update() on all children
+        self.plant_collision()      # harvest full-grown plant on collision
         
         # rain
-        if self.raining and not self.shop_active and not self.dialogue.is_active():
+        if self.raining:
             self.rain.update()
             self.soil_layer.water_all()
         
@@ -233,7 +230,10 @@ class CameraGroup(pygame.sprite.Group):
                     self.display_surface.blit(sprite.image, offset_rect)
                     
                     # anaytics
-                    # if sprite == player:
+                    # if isinstance(sprite, Autonomous_NPC):
+                    #     pygame.draw.rect(self.display_surface,'red',offset_rect,5)     
+                    
+                    # if isinstance(sprite, Player):
                     #     pygame.draw.rect(self.display_surface,'red',offset_rect,5)
                     #     hitbox_rect = player.hitbox.copy()
                     #     hitbox_rect.center = offset_rect.center

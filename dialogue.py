@@ -1,15 +1,17 @@
 import pygame
 import pyperclip
+import re, threading
 from settings import *
 
 class Dialogue_Menu:
-    def __init__(self):
+    def __init__(self, get_npc_by_name):
         
         # general setup
         self.display_surface = pygame.display.get_surface()
         self.font = pygame.font.Font('./font/LycheeSoda.ttf', 30)
 
         self.active = False
+        self.can_open_chat = True  # Flag to prevent immediate re-opening
         self.message = ""
         self.input_text = ""    # Get player input
         
@@ -17,6 +19,9 @@ class Dialogue_Menu:
         self.cursor_timer = 0
         self.selection_start = 0  # Start of selected text
         self.selection_end = 0  # End of selected text
+        
+        self.npc = None
+        self.get_npc_by_name = get_npc_by_name
         
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
@@ -62,21 +67,34 @@ class Dialogue_Menu:
             cursor_y_bottom = input_box_rect.y + input_box_rect.height - 8  # Align with text
             pygame.draw.line(self.display_surface, BLACK, (cursor_x, cursor_y_top), (cursor_x, cursor_y_bottom), 2)
 
-    def input(self, events, get_response):
+    def input(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:  
                 # Exit dialogue menu
                 if event.key == pygame.K_ESCAPE: 
-                    self.active = False
+                    self.close_npc_chat()
                 # Remove the last character from the input text
                 elif event.key == pygame.K_BACKSPACE: 
                     self.input_text = self.input_text[:max(0, self.selection_start - 1)] + self.input_text[self.selection_end:]
                     self.selection_start = max(0, self.selection_start - 1)
                     self.selection_end = self.selection_start
                 # Submit user input
-                elif event.key == pygame.K_RETURN:      
+                elif event.key == pygame.K_RETURN:
+                    if self.input_text == "":
+                        self.close_npc_chat()
+                        return
+                    if not self.npc:
+                        match = re.match(r"/(\w+)\s*(.*)", self.input_text)
+                        # Send a command to NPC
+                        if match:
+                            npc_name = match.group(1)
+                            user_message = match.group(2)
+                            self.npc = self.get_npc_by_name(npc_name)
+                            self.npc.get_input(user_message)
+                        self.close_npc_chat()
+                        return
                     print(f'You: {self.input_text}')
-                    self.message = get_response(self.input_text)
+                    self.message = self.npc.get_input(self.input_text)
                     print(f'NPC: {self.message}')
                     self.input_text = ""
                 # Move cursor left
@@ -100,20 +118,37 @@ class Dialogue_Menu:
                 elif event.key == pygame.K_a and pygame.key.get_mods() & pygame.KMOD_CTRL:  
                     self.selection_start = 0
                     self.selection_end = len(self.input_text)
-                # Add the Unicode character of the key pressed
-                else:
+                # Add the displayable character of the key pressed
+                elif event.unicode.isprintable():
                     self.input_text = self.input_text[:self.selection_start] + event.unicode + self.input_text[self.selection_end:]
                     self.selection_start += 1
                     self.selection_end = self.selection_start
     
-    def open_dialogue(self):
+    def start_npc_chat(self, npc_name=None):
+        if not self.can_open_chat:
+            return
+        if npc_name:
+            self.npc = self.get_npc_by_name(npc_name)
+            print(self.npc)
         self.active = True
-        
+    
+    def close_npc_chat(self):
+        self.active = False
+        self.npc = None
+        self.npc_name = None
+        self.input_text = ""
+        self.can_open_chat = False
+        threading.Timer(0.1, self.enable_chat).start()
+    
+    def enable_chat(self):
+        """Re-enables NPC chat after delay."""
+        self.can_open_chat = True
+    
     def is_active(self):
         return self.active
     
-    def update(self, events, get_response):
-        self.input(events, get_response)
+    def update(self, events):
+        self.input(events)
         self.draw_input_box()
         if self.message:
             self.draw_chatbox()

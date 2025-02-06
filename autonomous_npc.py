@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
-from sprites import TextSprite
+from sprites import Generic, TextSprite, Interaction
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
 
@@ -16,7 +16,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+    def __init__(self, pos, name, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
         super().__init__(group)
 
         self.import_assets()
@@ -43,7 +43,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.speed = 200
         
         # text setup
-        self.name = "NPC"
+        self.name = name
         self.name_text = TextSprite(self.pos, group, self.name)
         
         # collision
@@ -74,6 +74,11 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.interaction_sprites = interaction_sprites
         self.sleep = False
         self.soil_layer = soil_layer
+        
+        self.interaction_sprite = Interaction((self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, {"name": "NPC", "npc_name": self.name})
+    
+    def __str__(self):
+        return f"NPC Name: {self.name}"
     
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -250,6 +255,9 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             if self.stepy <= 0: 
                 self.stepy = 0
                 self.direction.y = 0
+        
+        # Update Interaction Sprite around him
+        self.interaction_sprite.rect.topleft = (self.rect.x, self.rect.y)
     
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
@@ -284,3 +292,28 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         
         self.move(dt)
         self.animate(dt)
+
+class NPC_Manager:
+    def __init__(self, tmx_data, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+        self.npcs = pygame.sprite.Group()
+        self.setup(tmx_data, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+    
+    def setup(self, tmx_data, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+        """ Draw Conversational NPC characters on Map """
+        for obj in tmx_data.get_layer_by_name('Objects'):
+            if obj.name == "NPC":
+                img_surf = pygame.image.load('./graphics/objects/merchant.png')
+                Generic((obj.x, obj.y), img_surf, group)
+        
+        """ Set up LLM Models for Autonomous NPC characters"""
+        npc = Autonomous_NPC((1561.33, 1772.0), "NPC1", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+        self.npcs.add(npc)
+        
+        npc2 = Autonomous_NPC((1761.33, 1772.0), "NPC2", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+        self.npcs.add(npc2)
+    
+    def get_npc_by_name(self, npc_name):
+        for npc in self.npcs:
+            if npc.name == npc_name:
+                return npc
+        return None
