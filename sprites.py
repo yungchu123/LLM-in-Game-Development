@@ -100,7 +100,7 @@ class Tree(Generic):
                 groups = self.all_sprites, 
                 z = LAYERS['fruit'])
             random_apple.kill()
-            self.player_add('apple', 1)
+            self.player_add('apple', "resource", 1)
     
     def check_death(self):
         if self.health <= 0:
@@ -110,7 +110,7 @@ class Tree(Generic):
             self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
             self.hitbox = self.rect.copy().inflate(-10,-self.rect.height * 0.6)
             self.alive = False
-            self.player_add('wood', 1)
+            self.player_add('wood', "resource", 1)
 
     def update(self,dt):
         if self.alive:

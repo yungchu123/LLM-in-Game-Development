@@ -54,41 +54,6 @@ class Level:
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
         
-        # house 
-        for layer in ['HouseFloor', 'HouseFurnitureBottom']:
-            for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
-                Generic((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites, LAYERS['house bottom'])
-
-        for layer in ['HouseWalls', 'HouseFurnitureTop']:
-            for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
-                Generic((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
-    
-        # fence
-        for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
-            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
-    
-        # water
-        water_frames = import_folder('./graphics/water')
-        for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
-            Water((x * TILE_SIZE,y * TILE_SIZE), water_frames, self.all_sprites)
-    
-        # trees 
-        for obj in tmx_data.get_layer_by_name('Trees'):
-            Tree(
-                pos = (obj.x, obj.y), 
-                surf = obj.image, 
-                groups = [self.all_sprites, self.collision_sprites, self.tree_sprites], 
-                name = obj.name,
-                player_add = self.player_add)
-
-        # wildflowers 
-        for obj in tmx_data.get_layer_by_name('Decoration'):
-            WildFlower((obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites])
-    
-        # collion tiles
-        for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
-            Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
-        
         # Autonomous NPC
         self.npc_manager = NPC_Manager(
                                 tmx_data=tmx_data, 
@@ -125,17 +90,47 @@ class Level:
             if obj.name == 'NPC':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name, "npc_name": obj.npc_name})
         
+        # house 
+        for layer in ['HouseFloor', 'HouseFurnitureBottom']:
+            for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
+                Generic((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites, LAYERS['house bottom'])
+
+        for layer in ['HouseWalls', 'HouseFurnitureTop']:
+            for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
+                Generic((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
+    
+        # fence
+        for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
+            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
+    
+        # water
+        water_frames = import_folder('./graphics/water')
+        for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
+            Water((x * TILE_SIZE,y * TILE_SIZE), water_frames, self.all_sprites)
+    
+        # trees 
+        for obj in tmx_data.get_layer_by_name('Trees'):
+            Tree(
+                pos = (obj.x, obj.y), 
+                surf = obj.image, 
+                groups = [self.all_sprites, self.collision_sprites, self.tree_sprites], 
+                name = obj.name,
+                player_add = self.player.add_to_inventory)
+
+        # wildflowers 
+        for obj in tmx_data.get_layer_by_name('Decoration'):
+            WildFlower((obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites])
+    
+        # collion tiles
+        for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
+            Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
+        
         # Ground Sprite (Floor)
         Generic(
             pos = (0,0),
             surf = pygame.image.load('./graphics/world/ground.png').convert_alpha(),
             groups = self.all_sprites,
             z = LAYERS['ground'])
-
-    def player_add(self, item, amount):
-        self.player.item_inventory[item] += amount
-        self.success_sound.play()
-        print(f'{item} added. New inventory: {self.player.item_inventory}')
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
@@ -147,7 +142,7 @@ class Level:
         if self.soil_layer.plant_sprites:
             for plant in self.soil_layer.plant_sprites.sprites():
                 if plant.harvestable and plant.rect.colliderect(self.player.hitbox):
-                    self.player_add(plant.plant_type, 1)
+                    self.player.add_to_inventory(plant.plant_type, "resource", 1)
                     plant.kill()
                     Particle(plant.rect.topleft, plant.image, self.all_sprites, z = LAYERS['main'])
                     self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
@@ -176,7 +171,7 @@ class Level:
         # drawing logic
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
-        self.overlay.display()
+        self.overlay.draw_inventory()
         
         # updates
         if self.shop_active:

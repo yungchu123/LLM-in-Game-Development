@@ -36,32 +36,25 @@ class Player(pygame.sprite.Sprite):
         # timers
         self.timers =  {
             'tool use': Timer(1000, self.use_tool),
-            'tool switch': Timer(200),
             'seed use': Timer(1000, self.use_seed),
-            'seed switch': Timer(200)
+            'inventory switch': Timer(200)
         }
-        
-        # tools
-        self.tools = ['hoe', 'axe', 'water']
-        self.tool_index = 0
-        self.selected_tool = self.tools[self.tool_index]
-        
-        # seeds
-        self.seeds = ['corn', 'tomato']
-        self.seed_index = 0
-        self.selected_seed = self.seeds[self.seed_index]
         
         # inventory
-        self.item_inventory = {
-            'wood':   0,
-            'apple':  0,
-            'corn':   0,
-            'tomato': 0
-        }
-        self.seed_inventory = {
-            'corn':   5,
-            'tomato': 5
-        }
+        self.inventory = [
+            {"name": "hoe", "type": "tool"},
+            {"name": "axe", "type": "tool"},
+            {"name": "water", "type": "tool"},
+            {"name": "corn", "type": "seed", "quantity": 5},
+            {"name": "tomato", "type": "seed", "quantity": 5},
+            {"name": "wood", "type": "resource", "quantity": 0},
+            {"name": "apple", "type": "resource", "quantity": 0},
+            {"name": "corn", "type": "resource", "quantity": 0},
+            {"name": "tomato", "type": "resource", "quantity": 0},
+        ]
+        
+        self.inventory_index = 0
+        self.selected_item = self.inventory[self.inventory_index]
         self.money = 200
         
         # interaction
@@ -74,16 +67,16 @@ class Player(pygame.sprite.Sprite):
         self.dialogue_menu = dialogue_menu
 
     def use_tool(self):
-        print(f'tool use: {self.selected_tool}')
-        if self.selected_tool == 'hoe':
+        # print(f"tool use: {self.selected_item['name']}")
+        if self.selected_item['name'] == 'hoe':
             self.soil_layer.get_hit(self.target_pos)
         
-        if self.selected_tool == 'axe':
+        if self.selected_item['name'] == 'axe':
             for tree in self.tree_sprites.sprites():
                 if tree.rect.collidepoint(self.target_pos):
                     tree.damage()
         
-        if self.selected_tool == 'water':
+        if self.selected_item['name'] == 'water':
             self.soil_layer.water(self.target_pos)
     
     def get_target_pos(self):
@@ -91,10 +84,10 @@ class Player(pygame.sprite.Sprite):
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
     
     def use_seed(self):
-        
-        if self.seed_inventory[self.selected_seed] > 0:
-            self.soil_layer.plant_seed(self.target_pos, self.selected_seed)
-            self.seed_inventory[self.selected_seed] -= 1
+        # print(f"seed use: {self.selected_item['name']}")
+        if self.selected_item['quantity'] > 0:
+            self.soil_layer.plant_seed(self.target_pos, self.selected_item['name'])
+            self.selected_item['quantity'] -= 1
 
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -142,31 +135,30 @@ class Player(pygame.sprite.Sprite):
                 self.status = 'left'
             else:
                 self.direction.x = 0
-                
-            # tool use
-            if keys[pygame.K_SPACE]:
-                self.timers['tool use'].activate()
-                self.direction = pygame.math.Vector2() # stop player from moving during tool use
-                self.frame_index = 0                   # play new animation
-            
-            # change tool
+                                 
+            # change inventory
             # Key note: Use timer to avoid registering event more than once with each key press
-            if keys[pygame.K_q] and not self.timers['tool switch'].active:
-                self.timers['tool switch'].activate()
-                self.tool_index = (self.tool_index + 1) % len(self.tools)
-                self.selected_tool = self.tools[self.tool_index]
+            if keys[pygame.K_q] and not self.timers['inventory switch'].active:
+                self.timers['inventory switch'].activate()
+                self.inventory_index = (self.inventory_index - 1) % len(self.inventory)
+                self.selected_item = self.inventory[self.inventory_index]
             
-            # seed use
-            if keys[pygame.K_LCTRL]:
-                self.timers['seed use'].activate()
-                self.direction = pygame.math.Vector2()
-                self.frame_index = 0    
-            
-            # change seed
-            if keys[pygame.K_e] and not self.timers['seed switch'].active:
-                self.timers['seed switch'].activate()
-                self.seed_index = (self.seed_index + 1) % len(self.seeds)
-                self.selected_seed = self.seeds[self.seed_index]
+            if keys[pygame.K_w] and not self.timers['inventory switch'].active:
+                self.timers['inventory switch'].activate()
+                self.inventory_index = (self.inventory_index + 1) % len(self.inventory)
+                self.selected_item = self.inventory[self.inventory_index]
+                
+            # action (use seed or use tool)
+            if keys[pygame.K_SPACE] and not self.timers['tool use'].active:
+                type = self.selected_item['type']
+                if type == 'tool':
+                    self.timers['tool use'].activate()
+                    self.direction = pygame.math.Vector2() # stop player from moving during tool use
+                    self.frame_index = 0                   # play new animation
+                elif type == 'seed':
+                    self.timers['seed use'].activate()
+                    self.direction = pygame.math.Vector2()
+                    self.frame_index = 0   
             
             if keys[pygame.K_RETURN]:
                 self.dialogue_menu.start_npc_chat()
@@ -183,7 +175,54 @@ class Player(pygame.sprite.Sprite):
                     if collided_interaction_sprites[0].prop['name'] == "NPC":
                         npc_name = collided_interaction_sprites[0].prop['npc_name']
                         self.dialogue_menu.start_npc_chat(npc_name)
-            
+    
+    def add_to_inventory(self, item_name, item_type, quantity=1):
+        """
+        Adds an item to the player's inventory. If the item already exists and is stackable, increase quantity.
+        
+        :param item_name: Name of the item to add (e.g., "corn").
+        :param item_type: Type of the item (e.g., "seed", "tool").
+        :param quantity: Amount to add (default = 1).
+        """
+        for item in self.inventory:
+            if item["name"] == item_name and item["type"] == item_type:
+                if "quantity" in item:  # If item is stackable (like seeds)
+                    item["quantity"] += quantity
+                return  # Exit function if item is found and updated
+        
+        # If the item is new, add it to inventory
+        new_item = {"name": item_name, "type": item_type}
+        if item_type in ["seed", "resource"]:  # Stackable items
+            new_item["quantity"] = quantity
+        self.inventory.append(new_item)
+    
+    def remove_from_inventory(self, item_name, item_type, quantity=1):
+        """
+        Removes an item or reduces its quantity in the inventory.
+        
+        :param item_name: Name of the item to remove.
+        :param item_type: Type of the item (e.g., "seed", "tool").
+        :param quantity: Amount to remove (default = 1).
+        """
+        for item in self.inventory:
+            if item["name"] == item_name and item["type"] == item_type:
+                if "quantity" in item:  # If item is stackable
+                    item["quantity"] -= quantity
+                return  # Exit after modifying the inventory
+    
+    def get_item(self, item_name, item_type):
+        """
+        Returns the first item in the inventory that matches the given name and type.
+
+        :param item_name: Name of the item to search for.
+        :param item_type: Type of the item to search for.
+        :return: The matching item dictionary or None if not found.
+        """
+        for item in self.inventory:
+            if item["name"] == item_name and item["type"] == item_type:
+                return item  # Return the first match
+        return None  # If no match is found
+    
     def get_status(self):
         # if the player is not moving
         if self.direction.magnitude() == 0:
@@ -191,7 +230,7 @@ class Player(pygame.sprite.Sprite):
         
         # tool use
         if self.timers['tool use'].active:
-            self.status = self.status.split('_')[0] + '_' + self.selected_tool
+            self.status = self.status.split('_')[0] + '_' + self.selected_item['name']
 
     def update_timers(self):
         for timer in self.timers.values():
