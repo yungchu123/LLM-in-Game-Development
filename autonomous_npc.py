@@ -44,7 +44,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         
         # text setup
         self.name = name
-        self.name_text = TextSprite(self.pos, group, self.name)
+        self.name_text = TextSprite(self.pos, group, BLUE, self.name)
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))

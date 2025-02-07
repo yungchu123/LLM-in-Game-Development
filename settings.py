@@ -28,7 +28,9 @@ LAYERS = {
     'main': 7,
     'house top': 8,
     'fruit': 9,
-    'rain drops': 10
+    'rain drops': 10,
+    'name text': 11,
+    'tool tip': 12
 }
 
 APPLE_POS = {
@@ -57,6 +59,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREY = (50, 50, 50)
 LIGHT_GREY = (200, 200, 200)
+BLUE = (0, 0, 255)
+GREEN = (0, 150, 0)
 
 # Chatbox Dimensions
 CHATBOX_HEIGHT = 200

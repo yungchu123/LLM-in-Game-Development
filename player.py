@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
-from sprites import TextSprite
+from sprites import TextSprite, ToolTipSprite
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu):
@@ -22,9 +22,12 @@ class Player(pygame.sprite.Sprite):
         self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 200
         
-        # text setup
+        # name text setup
         self.name = "Player"
-        self.name_text = TextSprite(self.pos, group, self.name)
+        self.name_text = TextSprite(self.pos, group, BLACK, self.name)
+        
+        # tool tip set up
+        self.tooltip = ToolTipSprite(self, group)
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))
@@ -170,15 +173,15 @@ class Player(pygame.sprite.Sprite):
             
             # interact with interaction sprites
             if keys[pygame.K_n]:
-                collided_interaction_sprite = pygame.sprite.spritecollide(self,self.interaction_sprites,False)
-                if collided_interaction_sprite:
-                    if collided_interaction_sprite[0].prop['name'] == 'Trader':
+                collided_interaction_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
+                if collided_interaction_sprites:
+                    if collided_interaction_sprites[0].prop['name'] == 'Trader':
                         self.toggle_shop()
-                    if collided_interaction_sprite[0].prop['name'] == 'Bed':
+                    if collided_interaction_sprites[0].prop['name'] == 'Bed':
                         self.status = 'left_idle'
                         self.sleep = True
-                    if collided_interaction_sprite[0].prop['name'] == "NPC":
-                        npc_name = collided_interaction_sprite[0].prop['npc_name']
+                    if collided_interaction_sprites[0].prop['name'] == "NPC":
+                        npc_name = collided_interaction_sprites[0].prop['npc_name']
                         self.dialogue_menu.start_npc_chat(npc_name)
             
     def get_status(self):
@@ -232,11 +235,26 @@ class Player(pygame.sprite.Sprite):
         self.hitbox.centery = round(self.pos.y)
         self.rect.centery = self.hitbox.centery
         self.collision('vertical')
-
+        
+    def get_tool_tip(self):
+        # Check for collision with interaction sprites. If yes, display tool tip
+        collided_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
+        if collided_sprites:
+            if collided_sprites[0].prop['name'] == 'Trader':
+                self.tooltip.update_text('[N] Trade with Merchant')
+            if collided_sprites[0].prop['name'] == 'Bed':
+                self.tooltip.update_text('[N] Sleep')
+            if collided_sprites[0].prop['name'] == "NPC":
+                npc_name = collided_sprites[0].prop['npc_name']
+                self.tooltip.update_text(f'[N] Talk to {npc_name}')
+            self.tooltip.show()  
+        else:
+            self.tooltip.hide()  
 
     def update(self, dt):
         self.input()
         self.get_status()
+        self.get_tool_tip()
         self.update_timers()
         self.get_target_pos()
         

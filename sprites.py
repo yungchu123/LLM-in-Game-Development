@@ -129,15 +129,50 @@ class Tree(Generic):
                     z = LAYERS['fruit'])
                 
 class TextSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, text="Hello!"):
+    def __init__(self, pos, groups, color=WHITE, text="Hello!"):
         super().__init__(groups)
         font = pygame.font.Font(None, 30)
         self.text = text
         self.pos = pos
-        self.z = LAYERS['main']
-        self.image = font.render(self.text, True, WHITE)
+        self.z = LAYERS['name text']
+        self.image = font.render(self.text, True, color)
         self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y - 40))  # Above the character
 
     def update(self, dt):
         # Update position above the character
         self.rect.center = (self.pos.x, self.pos.y - 40)
+
+class ToolTipSprite(pygame.sprite.Sprite):
+    def __init__(self, player, groups, text="Press N to interact"):
+        super().__init__(groups)
+        self.player = player
+        self.text = text
+        self.z = LAYERS['tool tip']
+        self.font = pygame.font.Font(None, 24)  # Default pygame font, size 24
+        self.image = self.font.render(self.text, True, (255, 255, 255))  # White text
+        self.rect = self.image.get_rect(topright=(self.player.rect.left + 50, self.player.rect.top + 20))  # Position top left abover player
+        self.visible = False  # Default: Hidden
+
+    def update(self, dt):
+        """Update tooltip position & visibility."""
+        if self.visible:
+            self.rect.topright = (self.player.rect.left + 50, self.player.rect.top + 20)
+        else:
+            self.image = pygame.Surface((0, 0))  # Hide tooltip
+
+    def update_text(self, text):
+        self.text = text
+
+    def show(self):
+        """Show the tooltip."""
+        text_surface = self.font.render(self.text, True, (255, 255, 255))
+        self.image = pygame.Surface((text_surface.get_width() + 15, text_surface.get_height() + 15))
+        self.image.fill(GREEN)  # Background Color
+        text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, self.image.get_height() // 2))
+        self.image.blit(text_surface, text_rect.topleft) # Center text inside box
+        self.visible = True
+
+    def hide(self):
+        """Hide the tooltip."""
+        self.image = pygame.Surface((0, 0))
+        self.visible = False
