@@ -269,7 +269,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.agent = create_react_agent(llm_with_tools, tools=tools)
         self.conversation_history = []
         
-    def scheduled_input(self, query):
+    def scheduled_input(self, query, dialogue):
         self.messages = [HumanMessage(query)]
         print(query)
         result = self.agent.invoke(
@@ -278,10 +278,11 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         )
         for m in result['messages']:
             m.pretty_print()
+        dialogue.message = result['messages'][-1].content   # update response in dialogue
     
-    def get_input(self, query, delay=1.0):
+    def get_input(self, query, dialgoue, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
-        timer = threading.Timer(delay, self.scheduled_input, args=[query])
+        timer = threading.Timer(delay, self.scheduled_input, args=[query, dialgoue])
         timer.start()
     
     def update(self, dt):

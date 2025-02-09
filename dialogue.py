@@ -90,13 +90,13 @@ class Dialogue_Menu:
                             npc_name = match.group(1)
                             user_message = match.group(2)
                             self.npc = self.get_npc_by_name(npc_name)
-                            self.npc.get_input(user_message)
+                            self.npc.get_input(user_message, self)
                         self.close_npc_chat()
                         return
                     print(f'You: {self.input_text}')
-                    self.message = self.npc.get_input(self.input_text)
+                    self.npc.get_input(self.input_text, self)
                     print(f'NPC: {self.message}')
-                    self.input_text = ""
+                    self.reset_input()
                 # Move cursor left
                 elif event.key == pygame.K_LEFT:  
                     self.selection_start = max(0, self.selection_start - 1)
@@ -129,20 +129,24 @@ class Dialogue_Menu:
             return
         if npc_name:
             self.npc = self.get_npc_by_name(npc_name)
-            print(self.npc)
         self.active = True
     
     def close_npc_chat(self):
         self.active = False
         self.npc = None
         self.npc_name = None
-        self.input_text = ""
+        self.reset_input()
         self.can_open_chat = False
         threading.Timer(0.1, self.enable_chat).start()
     
     def enable_chat(self):
         """Re-enables NPC chat after delay."""
         self.can_open_chat = True
+    
+    def reset_input(self):
+        self.input_text = ""
+        self.selection_start = 0
+        self.selection_end = 0 
     
     def is_active(self):
         return self.active
