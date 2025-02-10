@@ -10,7 +10,7 @@ from pathfinding import find_path
 from langchain.tools.base import StructuredTool
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 import threading
 
 from dotenv import load_dotenv, find_dotenv
@@ -35,17 +35,20 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.stepx = 0         # X distance from destination 
         self.stepy = 0         # Y distance from destination 
         
-        # npc set up
-        self.npc_setup()
-        
         # movement attributes
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
         self.speed = 200
         
-        # text setup
-        self.name = name
-        self.name_text = TextSprite(self.pos, group, BLUE, self.name)
+        # npc set up
+        self.npc_personality = {
+            'name': name,
+            'likes': ['apple', 'sunny days'],
+            'dislikes': ['corn', 'rainy days'],
+            'conversation': "Speaks with patience and wisdom, often sharing ancient knowledge"
+        }
+        self.name_text = TextSprite(self.pos, group, BLUE, self.npc_personality['name'])
+        self.npc_setup()
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))
@@ -76,16 +79,17 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.sleep = False
         self.soil_layer = soil_layer
         
-        self.interaction_sprite = Interaction((self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, {"name": "NPC", "npc_name": self.name})
+        self.interaction_sprite = Interaction((self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, {"name": "NPC", "npc_name": self.npc_personality['name']})
         
         # Quest
-        if self.name == "Alice":
-            self.quest = CollectQuest(self.name, "hoe", "tool", [{"money": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
-        else:
-            self.quest = CollectQuest(self.name, "apple", "resource", [{"money": 100}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
+        self.quest = None
+        # if self.npc_personality['name'] == "Alice":
+        #     self.quest = CollectQuest(self.npc_personality['name'], "hoe", "tool", [{"money": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+        # else:
+        #     self.quest = CollectQuest(self.npc_personality['name'], "apple", "resource", [{"money": 100}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
     
     def __str__(self):
-        return f"NPC Name: {self.name}"
+        return f"NPC Name: {self.npc_personality['name']}"
     
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -272,24 +276,35 @@ class Autonomous_NPC(pygame.sprite.Sprite):
     
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
+        
+        system_message = f"""
+            You are a character living in the Pydew world, a vibrant and dynamic environment where players interact with villagers, explore nature, and complete quests. 
+            Your role is to provide meaningful and context-aware interactions based on your personality, knowledge, and the world state.
+
+            Here is more information about you: {self.npc_personality}
+            
+            Today is rainy day.
+        """
+        
+        self.messages = [SystemMessage(system_message)]
         tools = [
             StructuredTool.from_function(self.move_to), 
             StructuredTool.from_function(self.use_tool),
             StructuredTool.from_function(self.use_seed)]
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
-        self.conversation_history = []
         
     def scheduled_input(self, query, dialogue):
-        self.messages = [HumanMessage(query)]
-        print(query)
+        self.messages.append(HumanMessage(query))
         result = self.agent.invoke(
-            {"messages": [HumanMessage(query)]},
+            {"messages": self.messages},
             {"recursion_limit": 10}
         )
         for m in result['messages']:
             m.pretty_print()
-        dialogue.message = result['messages'][-1].content   # update response in dialogue
+        ai_response = result['messages'][-1].content
+        dialogue.message = ai_response   # update response in dialogue
+        self.messages.append(ai_response)
     
     def get_input(self, query, dialgoue, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
@@ -326,6 +341,6 @@ class NPC_Manager:
     
     def get_npc_by_name(self, npc_name):
         for npc in self.npcs:
-            if npc.name == npc_name:
+            if npc.npc_personality['name'] == npc_name:
                 return npc
         return None

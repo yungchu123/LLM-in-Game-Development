@@ -44,7 +44,7 @@ class Dialogue_Menu:
     
         # Render and display NPC dialogue
         if self.npc:
-            npc_surface = self.font.render(f"{self.npc.name}: {self.message}", True, WHITE)
+            npc_surface = self.font.render(f"{self.npc.npc_personality['name']}: {self.message}", True, WHITE)
             self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, chatbox_rect.y + 20))
 
     def draw_input_box(self):
