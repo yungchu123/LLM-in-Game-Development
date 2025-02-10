@@ -44,8 +44,15 @@ class Dialogue_Menu:
     
         # Render and display NPC dialogue
         if self.npc:
-            npc_surface = self.font.render(f"{self.npc.npc_personality['name']}: {self.message}", True, WHITE)
-            self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, chatbox_rect.y + 20))
+            # Wrap text to fit inside the chatbox
+            wrapped_text = self.wrap_text(f"{self.npc.npc_personality['name']}: {self.message}", chatbox_rect.width - 40)
+            
+            # Render each line inside the chatbox
+            y_offset = chatbox_rect.y + 20  # Start position for text inside box
+            for line in wrapped_text:
+                npc_surface = self.font.render(line, True, WHITE)
+                self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, y_offset))
+                y_offset += self.font.get_height() + 5  # Space between lines
 
     def draw_input_box(self):
         """Draw the player input box."""
@@ -200,6 +207,27 @@ class Dialogue_Menu:
                             self.message = ""           # Remove quest name from message
                             self.close_npc_chat()
     
+    def wrap_text(self, text, max_width):
+        """Splits text into multiple lines based on available width."""
+        words = text.split()  # Split text into individual words
+        lines = []
+        current_line = ""
+
+        for word in words:
+            # Check if adding this word exceeds the width
+            test_line = f"{current_line} {word}".strip()
+            if self.font.size(test_line)[0] < max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)  # Store current line and start a new one
+                current_line = word  # Start with the new word
+
+        # Append last line
+        if current_line:
+            lines.append(current_line)
+
+        return lines  
+
     def start_npc_chat(self, player, npc_name):
         if not self.can_open_chat:
             return
