@@ -171,13 +171,15 @@ class Level:
         # drawing logic
         self.display_surface.fill('black')
         self.all_sprites.custom_draw(self.player)
-        self.overlay.draw_inventory()
         
         # updates
         if self.shop_active:
             self.menu.update()
+        
         if self.dialogue.is_active():
             self.dialogue.update(events)
+        else:
+            self.overlay.draw_inventory()
         
         self.all_sprites.update(dt) # calls update() on all children
         self.plant_collision()      # harvest full-grown plant on collision

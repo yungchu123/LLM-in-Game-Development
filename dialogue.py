@@ -1,6 +1,7 @@
 import pygame
 import pyperclip
 import re, threading
+from quest import QuestStatus
 from settings import *
 
 class Dialogue_Menu:
@@ -23,6 +24,12 @@ class Dialogue_Menu:
         self.npc = None
         self.get_npc_by_name = get_npc_by_name
         
+        # box dimensions for input box
+        self.BOX_X = CHATBOX_MARGIN
+        self.BOX_Y = SCREEN_HEIGHT - INPUT_BOX_HEIGHT - CHATBOX_MARGIN
+        self.BOX_WIDTH = SCREEN_WIDTH - 2 * CHATBOX_MARGIN
+        self.BOX_HEIGHT = INPUT_BOX_HEIGHT
+        
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
         # NPC Chatbox
@@ -36,18 +43,14 @@ class Dialogue_Menu:
         pygame.draw.rect(self.display_surface, WHITE, chatbox_rect, width=3, border_radius=10)
     
         # Render and display NPC dialogue
-        npc_surface = self.font.render(f"NPC: {self.message}", True, WHITE)
-        self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, chatbox_rect.y + 20))
+        if self.npc:
+            npc_surface = self.font.render(f"{self.npc.name}: {self.message}", True, WHITE)
+            self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, chatbox_rect.y + 20))
 
     def draw_input_box(self):
         """Draw the player input box."""
         color = WHITE 
-        input_box_rect = pygame.Rect(
-            CHATBOX_MARGIN,
-            SCREEN_HEIGHT - INPUT_BOX_HEIGHT - CHATBOX_MARGIN,
-            SCREEN_WIDTH - 2 * CHATBOX_MARGIN,
-            INPUT_BOX_HEIGHT,
-        )
+        input_box_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH, self.BOX_HEIGHT)
         pygame.draw.rect(self.display_surface, color, input_box_rect, border_radius=10)
         pygame.draw.rect(self.display_surface, BLACK, input_box_rect, width=3, border_radius=10)
 
@@ -66,6 +69,65 @@ class Dialogue_Menu:
             cursor_y_top = input_box_rect.y + 8  # Align with text
             cursor_y_bottom = input_box_rect.y + input_box_rect.height - 8  # Align with text
             pygame.draw.line(self.display_surface, BLACK, (cursor_x, cursor_y_top), (cursor_x, cursor_y_bottom), 2)
+
+    def draw_progress_box(self):
+        # Draw background box
+        progress_box_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH, self.BOX_HEIGHT)
+        pygame.draw.rect(self.display_surface, GREY, progress_box_rect, border_radius=10)
+        pygame.draw.rect(self.display_surface, BLACK, progress_box_rect, width=3, border_radius=10)
+        
+        progress = self.npc.quest.progress
+        target = self.npc.quest.target_quantity
+        filled_width = (progress / target) * self.BOX_WIDTH if target > 0 else 0
+        
+        # Draw progress box
+        if progress > 0:
+            pygame.draw.rect(self.display_surface, GREEN, (self.BOX_X, self.BOX_Y, filled_width, self.BOX_HEIGHT), border_radius=5)
+            
+        # Render progress text
+        progress_text = self.font.render(f"{progress} / {target}", True, BLACK)
+        text_x = self.BOX_X + self.BOX_WIDTH // 2 - progress_text.get_width() // 2
+        text_y = self.BOX_Y + self.BOX_HEIGHT // 2 - progress_text.get_height() // 2
+        self.display_surface.blit(progress_text, (text_x, text_y))
+
+    def draw_claim_reward_box(self):   
+        # Draw background box
+        self.claim_reward_box_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH, self.BOX_HEIGHT)
+        pygame.draw.rect(self.display_surface, GREEN, self.claim_reward_box_rect, border_radius=10)
+        pygame.draw.rect(self.display_surface, BLACK, self.claim_reward_box_rect, width=3, border_radius=10)
+        
+        # Render text
+        text = self.font.render("Claim reward", True, BLACK)
+        text_x = self.BOX_X + self.BOX_WIDTH // 2 - text.get_width() // 2
+        text_y = self.BOX_Y + self.BOX_HEIGHT // 2 - text.get_height() // 2
+        self.display_surface.blit(text, (text_x, text_y))
+
+    def draw_buttons(self):
+        # Define button rects
+        self.accept_button_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH // 2, self.BOX_HEIGHT)
+        self.decline_button_rect = pygame.Rect(self.BOX_X + self.BOX_WIDTH // 2, self.BOX_Y, self.BOX_WIDTH // 2, self.BOX_HEIGHT)
+        
+        # Draw Accept Button
+        pygame.draw.rect(self.display_surface, GREEN, self.accept_button_rect, border_radius=10)
+        pygame.draw.rect(self.display_surface, BLACK, self.accept_button_rect, width=3, border_radius=10)
+
+        # Draw Decline Button
+        pygame.draw.rect(self.display_surface, RED, self.decline_button_rect, border_radius=10)
+        pygame.draw.rect(self.display_surface, BLACK, self.decline_button_rect, width=3, border_radius=10)
+
+        # Button Text
+        accept_text = self.font.render("Accept", True, WHITE)
+        decline_text = self.font.render("Decline", True, WHITE)
+        
+        # Center text inside buttons
+        self.display_surface.blit(
+            accept_text,
+            (self.accept_button_rect.centerx - accept_text.get_width() // 2, self.accept_button_rect.centery - accept_text.get_height() // 2),
+        )
+        self.display_surface.blit(
+            decline_text,
+            (self.decline_button_rect.centerx - decline_text.get_width() // 2, self.decline_button_rect.centery - decline_text.get_height() // 2),
+        )
 
     def input(self, events):
         for event in events:
@@ -123,18 +185,35 @@ class Dialogue_Menu:
                     self.input_text = self.input_text[:self.selection_start] + event.unicode + self.input_text[self.selection_end:]
                     self.selection_start += 1
                     self.selection_end = self.selection_start
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.npc_has_quest():
+                    if self.npc.quest.status == QuestStatus.NOT_STARTED:
+                        if self.accept_button_rect.collidepoint(event.pos):
+                            self.npc.assign_quest(self.player)
+                            self.close_npc_chat()
+                        elif self.decline_button_rect.collidepoint(event.pos):
+                            self.close_npc_chat()
+                    elif self.npc.quest.status == QuestStatus.COMPLETED:
+                        if self.claim_reward_box_rect.collidepoint(event.pos):
+                            self.npc.quest.grant_reward(self.player)
+                            self.npc.quest = None       # Remove quest from NPC here for simplicity
+                            self.message = ""           # Remove quest name from message
+                            self.close_npc_chat()
     
-    def start_npc_chat(self, npc_name=None):
+    def start_npc_chat(self, player, npc_name):
         if not self.can_open_chat:
             return
-        if npc_name:
-            self.npc = self.get_npc_by_name(npc_name)
+        self.npc = self.get_npc_by_name(npc_name)
+        self.player = player
+        
+        # Check if have quest
+        if self.npc_has_quest():
+            self.message = self.npc.quest.name
+            
         self.active = True
     
     def close_npc_chat(self):
         self.active = False
-        self.npc = None
-        self.npc_name = None
         self.reset_input()
         self.can_open_chat = False
         threading.Timer(0.1, self.enable_chat).start()
@@ -151,8 +230,19 @@ class Dialogue_Menu:
     def is_active(self):
         return self.active
     
+    def npc_has_quest(self):
+        return self.npc.quest != None
+    
     def update(self, events):
         self.input(events)
-        self.draw_input_box()
         if self.message:
             self.draw_chatbox()
+        if self.npc_has_quest():
+            if self.npc.quest.status == QuestStatus.NOT_STARTED:
+                self.draw_buttons()
+            elif self.npc.quest.status == QuestStatus.IN_PROGRESS:
+                self.draw_progress_box()
+            elif self.npc.quest.status == QuestStatus.COMPLETED:
+                self.draw_claim_reward_box()
+        else:
+            self.draw_input_box()

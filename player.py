@@ -3,6 +3,7 @@ from settings import *
 from support import *
 from timer import Timer
 from sprites import TextSprite, ToolTipSprite
+from quest import TalkQuest, CollectQuest
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu):
@@ -42,9 +43,9 @@ class Player(pygame.sprite.Sprite):
         
         # inventory
         self.inventory = [
-            {"name": "hoe", "type": "tool"},
-            {"name": "axe", "type": "tool"},
-            {"name": "water", "type": "tool"},
+            {"name": "hoe", "type": "tool", "quantity": 1},
+            {"name": "axe", "type": "tool", "quantity": 1},
+            {"name": "water", "type": "tool", "quantity": 1},
             {"name": "corn", "type": "seed", "quantity": 5},
             {"name": "tomato", "type": "seed", "quantity": 5},
             {"name": "wood", "type": "resource", "quantity": 0},
@@ -65,6 +66,13 @@ class Player(pygame.sprite.Sprite):
         self.toggle_shop = toggle_shop
         self.is_shop_active = is_shop_active
         self.dialogue_menu = dialogue_menu
+        
+        # Stats
+        self.talked_to_npcs = {}    # NPCs the player has interacted with
+        
+        # Quests
+        self.quests = []
+        self.completed_quests = []
 
     def use_tool(self):
         # print(f"tool use: {self.selected_item['name']}")
@@ -160,8 +168,8 @@ class Player(pygame.sprite.Sprite):
                     self.direction = pygame.math.Vector2()
                     self.frame_index = 0   
             
-            if keys[pygame.K_RETURN]:
-                self.dialogue_menu.start_npc_chat()
+            # if keys[pygame.K_RETURN]:
+            #     self.dialogue_menu.start_npc_chat()
             
             # interact with interaction sprites
             if keys[pygame.K_n]:
@@ -174,7 +182,11 @@ class Player(pygame.sprite.Sprite):
                         self.sleep = True
                     if collided_interaction_sprites[0].prop['name'] == "NPC":
                         npc_name = collided_interaction_sprites[0].prop['npc_name']
-                        self.dialogue_menu.start_npc_chat(npc_name)
+                        if npc_name:
+                            self.dialogue_menu.start_npc_chat(self, npc_name)
+                            if npc_name not in self.talked_to_npcs:
+                                self.talked_to_npcs[npc_name] = 0
+                            self.talked_to_npcs[npc_name] += 1
     
     def add_to_inventory(self, item_name, item_type, quantity=1):
         """
@@ -222,6 +234,14 @@ class Player(pygame.sprite.Sprite):
             if item["name"] == item_name and item["type"] == item_type:
                 return item  # Return the first match
         return None  # If no match is found
+    
+    def accept_quest(self, quest):
+        quest.start_quest(self)
+        self.quests.append(quest)
+    
+    def update_quests(self):
+        for quest in self.quests:
+            quest.update_progress(self)
     
     def get_status(self):
         # if the player is not moving
@@ -296,6 +316,7 @@ class Player(pygame.sprite.Sprite):
         self.get_tool_tip()
         self.update_timers()
         self.get_target_pos()
+        self.update_quests()
         
         self.move(dt)
         self.animate(dt)

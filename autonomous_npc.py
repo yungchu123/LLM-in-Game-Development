@@ -3,6 +3,7 @@ from settings import *
 from support import *
 from timer import Timer
 from sprites import Generic, TextSprite, Interaction
+from quest import TalkQuest, CollectQuest, QuestStatus
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
 
@@ -76,6 +77,12 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.soil_layer = soil_layer
         
         self.interaction_sprite = Interaction((self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, {"name": "NPC", "npc_name": self.name})
+        
+        # Quest
+        if self.name == "Alice":
+            self.quest = CollectQuest(self.name, "hoe", "tool", [{"money": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+        else:
+            self.quest = CollectQuest(self.name, "apple", "resource", [{"money": 100}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
     
     def __str__(self):
         return f"NPC Name: {self.name}"
@@ -147,6 +154,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.grid = [[[] for _ in range(h_tiles)] for _ in range(v_tiles)]
         for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Collision').tiles():
             self.grid[y][x].append('C')
+    
+    def assign_quest(self, player):
+        if self.quest.status == QuestStatus.NOT_STARTED:
+            player.accept_quest(self.quest)
     
     def move_to(self, endx, endy):
         """
@@ -307,10 +318,10 @@ class NPC_Manager:
                 Generic((obj.x, obj.y), img_surf, group)
         
         """ Set up LLM Models for Autonomous NPC characters"""
-        npc = Autonomous_NPC((1561.33, 1772.0), "NPC1", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+        npc = Autonomous_NPC((1561.33, 1772.0), "Alice", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
         self.npcs.add(npc)
         
-        npc2 = Autonomous_NPC((1761.33, 1772.0), "NPC2", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+        npc2 = Autonomous_NPC((1761.33, 1772.0), "Bob", group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
         self.npcs.add(npc2)
     
     def get_npc_by_name(self, npc_name):
