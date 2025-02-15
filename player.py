@@ -38,7 +38,8 @@ class Player(pygame.sprite.Sprite):
         self.timers =  {
             'tool use': Timer(1000, self.use_tool),
             'seed use': Timer(1000, self.use_seed),
-            'inventory switch': Timer(200)
+            'inventory switch': Timer(200),
+            'interact': Timer(200)
         }
         
         # inventory
@@ -69,6 +70,7 @@ class Player(pygame.sprite.Sprite):
         
         # Stats
         self.talked_to_npcs = {}    # NPCs the player has interacted with
+        self.interacted_obj = {}
         
         # Quests
         self.quests = []
@@ -172,7 +174,7 @@ class Player(pygame.sprite.Sprite):
             #     self.dialogue_menu.start_npc_chat()
             
             # interact with interaction sprites
-            if keys[pygame.K_n]:
+            if keys[pygame.K_n] and not self.timers['interact'].active:
                 collided_interaction_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
                 if collided_interaction_sprites:
                     if collided_interaction_sprites[0].prop['name'] == 'Trader':
@@ -187,6 +189,10 @@ class Player(pygame.sprite.Sprite):
                             if npc_name not in self.talked_to_npcs:
                                 self.talked_to_npcs[npc_name] = 0
                             self.talked_to_npcs[npc_name] += 1
+                    else:
+                        collided_interaction_sprites[0].func()
+                    self.timers['interact'].activate()
+                    
     
     def add_to_inventory(self, item_name, item_type, quantity=1):
         """
@@ -299,13 +305,7 @@ class Player(pygame.sprite.Sprite):
         # Check for collision with interaction sprites. If yes, display tool tip
         collided_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
         if collided_sprites:
-            if collided_sprites[0].prop['name'] == 'Trader':
-                self.tooltip.update_text('[N] Trade with Merchant')
-            if collided_sprites[0].prop['name'] == 'Bed':
-                self.tooltip.update_text('[N] Sleep')
-            if collided_sprites[0].prop['name'] == "NPC":
-                npc_name = collided_sprites[0].prop['npc_name']
-                self.tooltip.update_text(f'[N] Talk to {npc_name}')
+            self.tooltip.update_text(collided_sprites[0].tool_tip)
             self.tooltip.show()  
         else:
             self.tooltip.hide()  

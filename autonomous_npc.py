@@ -79,7 +79,10 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.sleep = False
         self.soil_layer = soil_layer
         
-        self.interaction_sprite = Interaction((self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, {"name": "NPC", "npc_name": self.npc_personality['name']})
+        self.interaction_sprite = Interaction(
+                                        (self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, 
+                                        {"name": "NPC", "npc_name": self.npc_personality['name']}, 
+                                        f"[N] Talk to {self.npc_personality['name']}")
         
         # Quest
         self.quest = None

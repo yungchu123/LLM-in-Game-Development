@@ -14,6 +14,7 @@ from dialogue import Dialogue_Menu
 from conversational_llm import ConversationalLLM
 from autonomous_npc import NPC_Manager
 from timer import Timer
+from grid import Grid
 
 class Level:
     def __init__(self):
@@ -50,6 +51,8 @@ class Level:
         
         # Timer for npc
         self.npc_timer = Timer(500)
+        
+        self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name)
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -82,13 +85,13 @@ class Level:
                     dialogue_menu = self.dialogue)
             
             if obj.name == 'Bed':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name})
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Sleep')
             
             if obj.name == 'Trader':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name})
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Trade with Merchant')
                 
             if obj.name == 'NPC':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name, "npc_name": obj.npc_name})
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name, "npc_name": obj.npc_name}, f'[N] Talk to {obj.npc_name}')
         
         # house 
         for layer in ['HouseFloor', 'HouseFurnitureBottom']:
@@ -195,7 +198,12 @@ class Level:
         # player sleep transition
         if self.player.sleep:
             self.transition.play()
-            
+        
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_f] and not self.npc_timer.active:
+            self.grid.get_human_input('Generate a random event with fire anywhere between row from 27 to 30 and col from 15 to 20. Then create a quest')
+            self.npc_timer.activate()
+        self.npc_timer.update()
         # keys = pygame.key.get_pressed()
         # if keys[pygame.K_f] and not self.npc_timer.active:
         #     self.autonomous_npc.get_input('move to the pos (1443, 1450). Then move to (1561,1315).') # original position is (1561,1772)

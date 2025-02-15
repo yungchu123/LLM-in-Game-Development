@@ -1,5 +1,5 @@
 from enum import Enum
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 class QuestStatus(Enum):
     NOT_STARTED = 0
@@ -8,15 +8,20 @@ class QuestStatus(Enum):
     REWARD_ACCEPTED = 3
 
 class Quest:
-    def __init__(self, npc_name, rewards):
-        self.rewards = rewards
-        self.npc_name = npc_name
+    quest_counter = 0 # shared class-level counter
+    
+    def __init__(self, npc_name, name, description, objective, rewards):
+        self.id = Quest.quest_counter  # Assign unique quest ID
+        Quest.quest_counter += 1
         
-        self.name = None
-        self.objective = None  # e.g., "collect", "defeat", "talk"
-        self.target_quantity = 1
+        self.npc_name = npc_name
+        self.name = name
+        self.description = description
+        self.objective = objective  # e.g., "collect", "defeat", "talk"
+        self.rewards = rewards
         
         # Check progress
+        self.target_quantity = 1
         self.current_state = None
         self.progress = 0
         
@@ -36,12 +41,17 @@ class Quest:
     def grant_reward(self, player):
         """Grant reward to the player if the quest is completed."""
         if self.status == QuestStatus.COMPLETED:
+            # Grant reward to player
             for reward in self.rewards:
                 if "money" in reward:
                     player.money += reward["money"]
                 else:
                     player.add_to_inventory(reward["name"], reward["type"], reward["quantity"])
-            player.completed_quests.append(self)
+           
+            # Move quest from active to completed
+            player.quests = list(filter(lambda quest: quest.id != self.id, player.quests)) # Remove from active quests
+            player.completed_quests.append(self) # Add to completed list
+            
             print(f"Quest for {self.npc_name} '{self.name}' completed! Rewards granted.")
             self.status = QuestStatus.REWARD_ACCEPTED
         else:
@@ -49,9 +59,7 @@ class Quest:
             
 class TalkQuest(Quest):
     def __init__(self, npc_name, target_npc, rewards):
-        super().__init__(npc_name, rewards)
-        self.name = f"Talk to {target_npc}"
-        self.objective = 'talk'
+        super().__init__(npc_name, f"Talk to {target_npc}", f"Talk to {target_npc}", 'talk', rewards)
         self.target_npc = target_npc
 
     def start_quest(self, player):
@@ -71,9 +79,7 @@ class TalkQuest(Quest):
 
 class CollectQuest(Quest):
     def __init__(self, npc_name, item_name, item_type, rewards, target_quantity=1):
-        super().__init__(npc_name, rewards)
-        self.name = f"Collect {target_quantity} {item_name} for me"
-        self.objective = 'collect'
+        super().__init__(npc_name, f"Collect {target_quantity} {item_name} for {npc_name}", f"Collect {target_quantity} {item_name}", 'collect', rewards)
         self.target_quantity = target_quantity
         self.item_name = item_name
         self.item_type = item_type
@@ -100,6 +106,34 @@ class CollectQuest(Quest):
             self.progress += (item_quantity - self.current_state)
             print(f'{self.progress}/{self.target_quantity}')
         self.current_state = item_quantity
+        
+        # Check for completion
+        if self.progress >= self.target_quantity:
+            self.status = QuestStatus.COMPLETED
+            print(self.status)
+
+class InteractQuest(Quest):
+    def __init__(self, npc_name, quest_name, quest_description, interaction_object, rewards, target_quantity=1):
+        super().__init__(npc_name, quest_name, quest_description, 'interact', rewards)
+        self.interaction_object = interaction_object
+        self.target_quantity = target_quantity
+    
+    def start_quest(self, player):
+        if self.interaction_object not in player.interacted_obj:
+            player.interacted_obj[self.interaction_object] = 0    
+        self.current_state = player.interacted_obj[self.interaction_object]
+        self.status = QuestStatus.IN_PROGRESS
+        
+    def update_progress(self, player):
+        if self.status != QuestStatus.IN_PROGRESS:
+            return
+        
+        # Update progress
+        quantity = player.interacted_obj[self.interaction_object]
+        if quantity > self.current_state:
+            self.progress += (quantity - self.current_state)
+            print(f'{self.progress}/{self.target_quantity}')
+        self.current_state = quantity
         
         # Check for completion
         if self.progress >= self.target_quantity:
