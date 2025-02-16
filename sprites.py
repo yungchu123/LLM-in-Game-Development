@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 from random import randint, choice
+from support import import_folder
 from timer import Timer
 
 class Generic(pygame.sprite.Sprite):
@@ -178,3 +179,49 @@ class ToolTipSprite(pygame.sprite.Sprite):
         """Hide the tooltip."""
         self.image = pygame.Surface((0, 0))
         self.visible = False
+        
+class QuestStatusSprite(pygame.sprite.Sprite):
+    def __init__(self, pos, groups, quest):
+        self.quest = quest
+        self.status = quest.status.name.lower()
+        
+        self.animations = {
+            'not_started': [],
+            'in_progress': [],
+            'completed': []
+        }
+        
+        # Import image surface into animations dict
+        file_path = './graphics/objects/quest_status/'
+        for animation in self.animations.keys():
+            self.animations[animation] = [pygame.transform.scale(img, (80, 80)) for img in import_folder(file_path + animation)]
+
+        # Load first image
+        self.frame_index = 0
+        self.image = self.animations[self.status][self.frame_index]
+        
+        # Position the sprite
+        self.pos = pos
+        self.vertical_displacement = -80 # Position above character
+        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y + self.vertical_displacement))
+        self.z = LAYERS['name text']
+        super().__init__(groups)
+
+    def animate(self, dt):
+        self.frame_index += 4 * dt
+        if self.frame_index >= len(self.animations[self.status]):
+            self.frame_index = 0
+
+        self.image = self.animations[self.status][int(self.frame_index)]
+        
+        # Update position above the character
+        self.rect.center = (self.pos.x, self.pos.y + self.vertical_displacement)
+    
+    def update(self, dt):
+        self.status = self.quest.status.name.lower()
+        
+        if self.status == "reward_accepted":
+            self.kill()
+            return
+        
+        self.animate(dt)

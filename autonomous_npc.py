@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
-from sprites import Generic, TextSprite, Interaction
+from sprites import Generic, TextSprite, Interaction, QuestStatusSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
@@ -18,6 +18,7 @@ load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
     def __init__(self, pos, name, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+        self.group = group
         super().__init__(group)
 
         self.import_assets()
@@ -86,6 +87,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         
         # Quest
         self.quest = None
+        self.quest_status_sprite = None
         # if self.npc_personality['name'] == "Alice":
         #     self.quest = CollectQuest(self.npc_personality['name'], "hoe", "tool", [{"money": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
         # else:
@@ -162,7 +164,15 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Collision').tiles():
             self.grid[y][x].append('C')
     
-    def assign_quest(self, player):
+    def assign_quest(self, quest):
+        self.quest = quest
+        
+        if self.quest_status_sprite:
+            self.quest_status_sprite.kill() # remove old sprite
+            
+        self.quest_status_sprite = QuestStatusSprite(self.pos, self.group, self.quest)
+    
+    def assign_quest_to_player(self, player):
         if self.quest.status == QuestStatus.NOT_STARTED:
             player.accept_quest(self.quest)
     

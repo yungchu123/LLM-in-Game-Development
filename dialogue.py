@@ -196,7 +196,7 @@ class Dialogue_Menu:
                 if self.npc_has_quest():
                     if self.npc.quest.status == QuestStatus.NOT_STARTED:
                         if self.accept_button_rect.collidepoint(event.pos):
-                            self.npc.assign_quest(self.player)
+                            self.npc.assign_quest_to_player(self.player)
                             self.close_npc_chat()
                         elif self.decline_button_rect.collidepoint(event.pos):
                             self.close_npc_chat()

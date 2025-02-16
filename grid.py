@@ -103,7 +103,7 @@ class Grid:
         rewards = {"money": 100}, {"name": "corn", "type": "resource", "quantity": 5} # Hard-coded
         npc = self.get_npc_by_name(npc_name)
         quest = InteractQuest(npc_name, quest_name, quest_description, interaction_object.lower(), rewards, target_quantity)
-        npc.quest = quest
+        npc.assign_quest(quest)
     
     def build_graph(self):
         tools = [self.add_to_grid, self.generate_event, self.generate_quest_for_npc]
