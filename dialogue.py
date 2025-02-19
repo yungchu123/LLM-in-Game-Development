@@ -236,7 +236,7 @@ class Dialogue_Menu:
         
         # Check if have quest
         if self.npc_has_quest():
-            self.message = self.npc.quest.name
+            self.message = self.npc.quest.description
             
         self.active = True
     

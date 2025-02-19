@@ -17,6 +17,7 @@ from timer import Timer
 from grid import Grid
 from announcer import Announcer
 from notification import NotificationManager
+from quest_menu import QuestMenu
 
 class Level:
     def __init__(self):
@@ -37,6 +38,7 @@ class Level:
         self.setup()
         self.overlay = Overlay(self.player)
         self.transition = Transition(self.reset, self.player)
+        self.quest_menu = QuestMenu(self.player)
         
         # sky
         self.rain = Rain(self.all_sprites)
@@ -207,6 +209,10 @@ class Level:
         
         self.announcer.update()
         self.notifications.update()
+        
+        self.quest_menu.draw()
+        for event in events:
+            self.quest_menu.handle_event(event)
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:

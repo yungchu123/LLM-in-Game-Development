@@ -21,6 +21,7 @@ class Quest:
         self.rewards = rewards
         
         # Check progress
+        self.target_item = None
         self.target_quantity = 1
         self.current_state = None
         self.progress = 0
@@ -61,6 +62,7 @@ class TalkQuest(Quest):
     def __init__(self, npc_name, target_npc, rewards):
         super().__init__(npc_name, f"Talk to {target_npc}", f"Talk to {target_npc}", 'talk', rewards)
         self.target_npc = target_npc
+        self.target_item = target_npc
 
     def start_quest(self, player):
         # When accepted by player
@@ -81,6 +83,7 @@ class CollectQuest(Quest):
     def __init__(self, npc_name, item_name, item_type, rewards, target_quantity=1):
         super().__init__(npc_name, f"Collect {target_quantity} {item_name} for {npc_name}", f"Collect {target_quantity} {item_name}", 'collect', rewards)
         self.target_quantity = target_quantity
+        self.target_item = f'{item_name} [{item_type}]'
         self.item_name = item_name
         self.item_type = item_type
     
@@ -117,6 +120,7 @@ class InteractQuest(Quest):
         super().__init__(npc_name, quest_name, quest_description, 'interact', rewards)
         self.interaction_object = interaction_object
         self.target_quantity = target_quantity
+        self.target_item = interaction_object
     
     def start_quest(self, player):
         if self.interaction_object not in player.interacted_obj:
