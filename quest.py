@@ -44,7 +44,7 @@ class Quest:
             # Grant reward to player
             for reward in self.rewards:
                 if "money" in reward:
-                    player.money += reward["money"]
+                    player.add_money(reward["money"])
                 else:
                     player.add_to_inventory(reward["name"], reward["type"], reward["quantity"])
            

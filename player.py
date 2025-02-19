@@ -6,7 +6,7 @@ from sprites import TextSprite, ToolTipSprite
 from quest import TalkQuest, CollectQuest
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification):
         super().__init__(group)
 
         self.import_assets()
@@ -67,6 +67,7 @@ class Player(pygame.sprite.Sprite):
         self.toggle_shop = toggle_shop
         self.is_shop_active = is_shop_active
         self.dialogue_menu = dialogue_menu
+        self.add_notification = add_notification
         
         # Stats
         self.talked_to_npcs = {}    # NPCs the player has interacted with
@@ -202,6 +203,7 @@ class Player(pygame.sprite.Sprite):
         :param item_type: Type of the item (e.g., "seed", "tool").
         :param quantity: Amount to add (default = 1).
         """
+        self.add_notification(f"{item_name} +{quantity}")
         for item in self.inventory:
             if item["name"] == item_name and item["type"] == item_type:
                 if "quantity" in item:  # If item is stackable (like seeds)
@@ -213,6 +215,10 @@ class Player(pygame.sprite.Sprite):
         if item_type in ["seed", "resource"]:  # Stackable items
             new_item["quantity"] = quantity
         self.inventory.append(new_item)
+    
+    def add_money(self, quantity):
+        self.money += quantity
+        self.add_notification(f"money +{quantity}")
     
     def remove_from_inventory(self, item_name, item_type, quantity=1):
         """

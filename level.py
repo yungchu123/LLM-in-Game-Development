@@ -16,6 +16,7 @@ from autonomous_npc import NPC_Manager
 from timer import Timer
 from grid import Grid
 from announcer import Announcer
+from notification import NotificationManager
 
 class Level:
     def __init__(self):
@@ -30,6 +31,7 @@ class Level:
         self.interaction_sprites = pygame.sprite.Group()    # empty space for interactions
   
         self.announcer = Announcer()
+        self.notifications = NotificationManager()
 
         self.soil_layer = SoilLayer(self.all_sprites)
         self.setup()
@@ -85,7 +87,8 @@ class Level:
                     soil_layer = self.soil_layer,
                     toggle_shop = self.toggle_shop,
                     is_shop_active = self.is_shop_active,
-                    dialogue_menu = self.dialogue)
+                    dialogue_menu = self.dialogue,
+                    add_notification = self.notifications.add_notification)
             
             if obj.name == 'Bed':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Sleep')
@@ -203,6 +206,7 @@ class Level:
             self.transition.play()
         
         self.announcer.update()
+        self.notifications.update()
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:
