@@ -15,6 +15,7 @@ from conversational_llm import ConversationalLLM
 from autonomous_npc import NPC_Manager
 from timer import Timer
 from grid import Grid
+from announcer import Announcer
 
 class Level:
     def __init__(self):
@@ -28,6 +29,8 @@ class Level:
         self.tree_sprites = pygame.sprite.Group()           # interaction with tree sprites
         self.interaction_sprites = pygame.sprite.Group()    # empty space for interactions
   
+        self.announcer = Announcer()
+
         self.soil_layer = SoilLayer(self.all_sprites)
         self.setup()
         self.overlay = Overlay(self.player)
@@ -52,7 +55,7 @@ class Level:
         # Timer for npc
         self.npc_timer = Timer(500)
         
-        self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name)
+        self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event)
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -198,6 +201,8 @@ class Level:
         # player sleep transition
         if self.player.sleep:
             self.transition.play()
+        
+        self.announcer.update()
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:

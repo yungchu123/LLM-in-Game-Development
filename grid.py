@@ -28,12 +28,13 @@ EVENT = {
 }
 
 class Grid:
-    def __init__(self, player, all_sprites, interaction_sprites, get_npc_by_name):
+    def __init__(self, player, all_sprites, interaction_sprites, get_npc_by_name, start_event):
         self.display_surface = pygame.display.get_surface()
         self.player = player
         self.all_sprites = all_sprites
         self.interaction_sprites = interaction_sprites
         self.get_npc_by_name = get_npc_by_name
+        self.start_event = start_event
         self.create_collision_grid()
         self.build_graph()
     
@@ -85,7 +86,7 @@ class Grid:
             "event_description": event_description,
             "event_outcome": event_outcome
         }
-        print(event)
+        self.start_event(event_name, event_description, "Alice")
         return event
     
     def generate_quest_for_npc(self, quest_name: str, quest_description: str, interaction_object: str, target_quantity: int):
