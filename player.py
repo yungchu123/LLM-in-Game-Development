@@ -4,6 +4,7 @@ from support import *
 from timer import Timer
 from sprites import TextSprite, ToolTipSprite
 from quest import TalkQuest, CollectQuest
+from level_system import LevelSystem
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification):
@@ -76,6 +77,12 @@ class Player(pygame.sprite.Sprite):
         # Quests
         self.quests = []
         self.completed_quests = []
+        
+        self.level_system = LevelSystem(add_notification=self.add_notification)
+
+    def gain_experience(self, amount):
+        """Wrapper to gain experience via the LevelSystem."""
+        self.level_system.gain_experience(amount)
 
     def use_tool(self):
         # print(f"tool use: {self.selected_item['name']}")

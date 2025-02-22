@@ -46,6 +46,8 @@ class Quest:
             for reward in self.rewards:
                 if "money" in reward:
                     player.add_money(reward["money"])
+                elif "experience" in reward:
+                    player.gain_experience(reward["experience"])
                 else:
                     player.add_to_inventory(reward["name"], reward["type"], reward["quantity"])
            
