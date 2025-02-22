@@ -62,6 +62,7 @@ LIGHT_GREY = (200, 200, 200)
 BLUE = (0, 0, 255)
 GREEN = (0, 150, 0)
 RED = (150, 0, 0)
+BEIGE = (245, 245, 220)
 
 # Chatbox Dimensions
 CHATBOX_HEIGHT = 200

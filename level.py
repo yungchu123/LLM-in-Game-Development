@@ -190,7 +190,7 @@ class Level:
         if self.dialogue.is_active():
             self.dialogue.update(events)
         else:
-            self.overlay.draw_inventory()
+            self.overlay.update()
         
         self.all_sprites.update(dt) # calls update() on all children
         self.plant_collision()      # harvest full-grown plant on collision

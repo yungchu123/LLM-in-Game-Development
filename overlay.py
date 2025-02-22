@@ -19,9 +19,11 @@ class Overlay:
         # general setup
         self.display_surface = pygame.display.get_surface()
         self.player = player
-        self.font = pygame.font.SysFont(None, 24)
+        self.small_font = pygame.font.SysFont(None, 24)
+        self.medium_font = pygame.font.SysFont(None, 30)
+        self.large_font = pygame.font.SysFont(None, 40)
         
-        # imports 
+        # imports for inventory image
         overlay_path = './graphics/overlay'
         self.items_surf = [
             pygame.transform.scale(
@@ -30,6 +32,33 @@ class Overlay:
             ) 
             for item in player.inventory
         ]
+        
+    def draw_level(self):
+        # Define a rectangle for the background. Adjust the position and size as needed.
+        background_rect = pygame.Rect(10, 10, 170, 115)
+        pygame.draw.rect(self.display_surface, BEIGE, background_rect, border_radius=20)
+
+        # Player name
+        name_surf = self.large_font.render(self.player.name, True, BLACK)
+        name_rect = name_surf.get_rect(topleft=(30, 20))
+        self.display_surface.blit(name_surf, name_rect)
+        
+        # Player level
+        level_surf = self.medium_font.render(f"Level {self.player.level_system.get_level()}", True, BLACK)
+        level_rect = level_surf.get_rect(topleft=(30, 60))
+        self.display_surface.blit(level_surf, level_rect)
+        
+        # Player experience
+        experience_surf = self.medium_font.render(
+            f"Exp    {self.player.level_system.get_experience()} / {self.player.level_system.experience_to_next_level()}",
+            True, BLACK)
+        experience_rect = experience_surf.get_rect(topleft=(30, 95))
+        self.display_surface.blit(experience_surf, experience_rect)
+        
+    def draw_money(self):
+        text_surf = self.medium_font.render(f"money: {self.player.money}", True, BLACK)
+        text_rect = text_surf.get_rect(topleft=(40, SCREEN_HEIGHT-40))
+        self.display_surface.blit(text_surf, text_rect)
         
     def draw_inventory(self):
         inventory_width = (SLOT_SIZE + SLOT_MARGIN) * NUM_SLOTS - SLOT_MARGIN
@@ -53,7 +82,7 @@ class Overlay:
                 # Display quantity if applicable
                 item = self.player.inventory[i]
                 if "quantity" in item:
-                    text_surface = self.font.render(str(item["quantity"]), True, BLACK)
+                    text_surface = self.small_font.render(str(item["quantity"]), True, BLACK)
                     text_rect = text_surface.get_rect()
                     
                     # Position the text in the bottom-right corner of the slot
@@ -65,3 +94,8 @@ class Overlay:
             # Highlight selected slot
             if i == self.player.inventory_index:
                 pygame.draw.rect(self.display_surface, HIGHLIGHT_COLOR, (x, INVENTORY_Y, SLOT_SIZE, SLOT_SIZE), 3)
+    
+    def update(self):
+        self.draw_inventory()
+        self.draw_level()
+        self.draw_money()
