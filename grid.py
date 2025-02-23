@@ -2,7 +2,7 @@ import pygame
 from pytmx.util_pygame import load_pygame
 from enum import Enum
 from sprites import Generic
-from event_sprites import FireSprite
+from event_sprites import FireSprite, CoinSprite, SnowPuddleSprite
 from quest import InteractQuest
 from settings import *
 import threading
@@ -21,7 +21,8 @@ from langgraph.checkpoint.memory import MemorySaver
 class GridItem(Enum):
     COLLISION = 0
     FIRE_SPRITE = 1    
-    ICE_SPRITE = 2    
+    COIN_SPRITE = 2
+    SNOW_PUDDLE_SPRITE = 3
 
 EVENT = {
     GridItem.FIRE_SPRITE: "Put out the fire"
@@ -68,7 +69,13 @@ class Grid:
             x = pos[0]
             y = pos[1]
             self.grid[y][x].append(GridItem(sprite))
-            fire_sprite = FireSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+            
+            if sprite == GridItem.FIRE_SPRITE.value:
+                FireSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+            elif sprite == GridItem.COIN_SPRITE.value:
+                CoinSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+            elif sprite == GridItem.SNOW_PUDDLE_SPRITE.value:
+                SnowPuddleSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
         
         return {GridItem(sprite).name}
     

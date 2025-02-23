@@ -216,7 +216,7 @@ class Level:
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:
-            self.grid.get_human_input('Generate a random event with fire anywhere between row from 27 to 30 and col from 15 to 20. Then create a quest')
+            self.grid.get_human_input('Generate a random event with snow anywhere between row from 27 to 30 and col from 15 to 20. Then create a quest')
             self.npc_timer.activate()
         self.npc_timer.update()
         # keys = pygame.key.get_pressed()
