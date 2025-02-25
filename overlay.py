@@ -56,10 +56,15 @@ class Overlay:
         self.display_surface.blit(experience_surf, experience_rect)
         
     def draw_money(self):
-        text_surf = self.medium_font.render(f"money: {self.player.money}", True, BLACK)
+        text_surf = self.medium_font.render(f"Money: {self.player.money}", True, BLACK)
         text_rect = text_surf.get_rect(topleft=(40, SCREEN_HEIGHT-40))
         self.display_surface.blit(text_surf, text_rect)
-        
+    
+    def draw_player_location(self):
+        text_surf = self.medium_font.render(f"Location: {self.player.location}", True, BLACK)
+        text_rect = text_surf.get_rect(topleft=(40, SCREEN_HEIGHT-60))
+        self.display_surface.blit(text_surf, text_rect)
+    
     def draw_inventory(self):
         inventory_width = (SLOT_SIZE + SLOT_MARGIN) * NUM_SLOTS - SLOT_MARGIN
         inventory_x = (SCREEN_WIDTH - inventory_width) // 2
@@ -99,3 +104,4 @@ class Overlay:
         self.draw_inventory()
         self.draw_level()
         self.draw_money()
+        self.draw_player_location()

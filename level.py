@@ -18,6 +18,7 @@ from grid import Grid
 from announcer import Announcer
 from notification import NotificationManager
 from quest_menu import QuestMenu
+from location import Location_Manager
 
 class Level:
     def __init__(self):
@@ -30,6 +31,7 @@ class Level:
         self.collision_sprites = pygame.sprite.Group()      # sprites with collision
         self.tree_sprites = pygame.sprite.Group()           # interaction with tree sprites
         self.interaction_sprites = pygame.sprite.Group()    # empty space for interactions
+        self.location_sprites = pygame.sprite.Group()
   
         self.announcer = Announcer()
         self.notifications = NotificationManager()
@@ -59,6 +61,8 @@ class Level:
         # Timer for npc
         self.npc_timer = Timer(500)
         
+        self.location = Location_Manager()
+        self.location.get_locations()
         self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event)
 
     def setup(self):
@@ -66,7 +70,6 @@ class Level:
         
         # Autonomous NPC
         self.npc_manager = NPC_Manager(
-                                tmx_data=tmx_data, 
                                 group = self.all_sprites, 
                                 collision_sprites = self.collision_sprites,
                                 tree_sprites = self.tree_sprites,
@@ -97,9 +100,6 @@ class Level:
             
             if obj.name == 'Trader':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Trade with Merchant')
-                
-            if obj.name == 'NPC':
-                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name, "npc_name": obj.npc_name}, f'[N] Talk to {obj.npc_name}')
         
         # house 
         for layer in ['HouseFloor', 'HouseFurnitureBottom']:
@@ -136,12 +136,25 @@ class Level:
         for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
             Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
         
-        # Ground Sprite (Floor)
-        Generic(
-            pos = (0,0),
-            surf = pygame.image.load('./graphics/world/ground.png').convert_alpha(),
-            groups = self.all_sprites,
-            z = LAYERS['ground'])
+        # Ground
+        for x, y, surf in tmx_data.get_layer_by_name('Ground').tiles():
+            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['ground'])
+            
+        # Water
+        for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
+            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['ground'])
+            
+        # Trader
+        for obj in tmx_data.get_layer_by_name('NPC'):
+            if obj.type == 'Trader':
+                Generic((obj.x, obj.y), obj.image, self.all_sprites)
+
+        # # Ground Sprite (Floor)
+        # Generic(
+        #     pos = (0,0),
+        #     surf = pygame.image.load('./graphics/world/ground.png').convert_alpha(),
+        #     groups = self.all_sprites,
+        #     z = LAYERS['ground'])
 
     def toggle_shop(self):
         self.shop_active = not self.shop_active
@@ -213,6 +226,8 @@ class Level:
         self.quest_menu.draw()
         for event in events:
             self.quest_menu.handle_event(event)
+        
+        self.location.check_player_location(self.player)
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:

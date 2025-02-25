@@ -18,6 +18,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center = pos)
         self.z = LAYERS['main']
+        self.location = None
 
         # movement attributes
         self.direction = pygame.math.Vector2()
@@ -187,10 +188,10 @@ class Player(pygame.sprite.Sprite):
                 if collided_interaction_sprites:
                     if collided_interaction_sprites[0].prop['name'] == 'Trader':
                         self.toggle_shop()
-                    if collided_interaction_sprites[0].prop['name'] == 'Bed':
+                    elif collided_interaction_sprites[0].prop['name'] == 'Bed':
                         self.status = 'left_idle'
                         self.sleep = True
-                    if collided_interaction_sprites[0].prop['name'] == "NPC":
+                    elif collided_interaction_sprites[0].prop['name'] == "NPC":
                         npc_name = collided_interaction_sprites[0].prop['npc_name']
                         if npc_name:
                             self.dialogue_menu.start_npc_chat(self, npc_name)
