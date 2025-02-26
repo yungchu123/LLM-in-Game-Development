@@ -231,7 +231,9 @@ class Level:
             self.quest_menu.handle_event(event)
         
         self.location.check_player_location(self.player)
+        self.grid.update()
         
+        # Testing
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:
             self.grid.get_human_input('Generate a random event. Then create a quest')

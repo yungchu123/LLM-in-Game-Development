@@ -88,12 +88,12 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # Quest
         self.quest = None
         self.quest_status_sprite = None
-        if self.npc_personality['name'] == "Alice":
-            quest = CollectQuest(self.npc_personality['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
-            self.assign_quest(quest)
-        else:
-            quest = CollectQuest(self.npc_personality['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
-            self.assign_quest(quest)
+        # if self.npc_personality['name'] == "Alice":
+        #     quest = CollectQuest(self.npc_personality['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+        #     self.assign_quest(quest)
+        # else:
+        #     quest = CollectQuest(self.npc_personality['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
+        #     self.assign_quest(quest)
     
     def __str__(self):
         return f"NPC Name: {self.npc_personality['name']}"

@@ -5,6 +5,7 @@ from sprites import Generic
 from event_sprites import FireSprite, CoinSprite, SnowPuddleSprite
 from quest import InteractQuest
 from settings import *
+from timer import Timer
 import threading
 
 from langgraph.graph import MessagesState
@@ -39,6 +40,10 @@ class Grid:
         self.get_locations = get_locations
         self.create_collision_grid()
         self.build_graph()
+        
+        self.event_timer = Timer(15000, self.trigger_event) # Timer need to be at least 15s, for llm to generate event and quest
+        self.event_timer.activate()
+        self.target_npc = self.get_npc_by_name("Alice")
     
     def create_collision_grid(self):
         # Use for calculating path for movement
@@ -68,7 +73,6 @@ class Grid:
         """
         for pos in positions:
             x, y = pos
-            print(x, y)
             
             if sprite == GridItem.FIRE_SPRITE.value:
                 FireSprite((x, y), [self.all_sprites, self.interaction_sprites], self.player)
@@ -107,11 +111,9 @@ class Grid:
             target_quantity: number of interaction object in the event
         """
         print(f"quest name: {quest_name}, quest description: {quest_description}, interaction_object: {interaction_object}, qty: {target_quantity}")
-        npc_name = "Alice"  # Hard-coded
-        rewards = {"money": 100}, {"name": "corn", "type": "resource", "quantity": 5} # Hard-coded
-        npc = self.get_npc_by_name(npc_name)
-        quest = InteractQuest(npc_name, quest_name, quest_description, interaction_object.lower(), rewards, target_quantity)
-        npc.assign_quest(quest)
+        rewards = [{"money": 100}, {"experience": 5}, {"name": "corn", "type": "resource", "quantity": 5}] # Hard-coded
+        quest = InteractQuest(self.target_npc.npc_personality['name'], quest_name, quest_description, interaction_object.lower(), rewards, target_quantity)
+        self.target_npc.assign_quest(quest)
     
     def build_graph(self):
         tools = [self.add_to_grid, self.generate_event, self.generate_quest_for_npc]
@@ -171,3 +173,17 @@ class Grid:
     def get_human_input(self, query, delay=1.0):
         timer = threading.Timer(delay, self.process_input, args=[query])
         timer.start()
+        
+    def trigger_event(self, delay=1.0):
+        if self.target_npc.quest != None:
+            return
+        print('trigger event')
+        query = "Generate a event and a quest"
+        timer = threading.Timer(delay, self.process_input, args=[query])
+        timer.start()
+
+    def update(self):
+        self.event_timer.update()
+        
+        if not self.event_timer.active:
+            self.event_timer.activate()
