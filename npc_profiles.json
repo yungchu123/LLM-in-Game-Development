@@ -1,0 +1,26 @@
+{
+    "Alice": {
+        "name": "Alice",
+        "role": "Quest",
+        "gender": "Female",
+        "likes": ["apple", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+    },
+    "Bob": {
+        "name": "Bob",
+        "role": "Quest",
+        "gender": "Male",
+        "likes": ["tomato", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+    },
+    "Charlie": {
+        "name": "Charlie",
+        "role": "Assistant",
+        "gender": "Male",
+        "likes": ["carrot", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+    }
+}

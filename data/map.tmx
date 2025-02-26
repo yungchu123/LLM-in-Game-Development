@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.1" orientation="orthogonal" renderorder="right-down" width="50" height="40" tilewidth="64" tileheight="64" infinite="0" nextlayerid="36" nextobjectid="387">
+<map version="1.10" tiledversion="1.11.1" orientation="orthogonal" renderorder="right-down" width="50" height="40" tilewidth="64" tileheight="64" infinite="0" nextlayerid="36" nextobjectid="388">
  <tileset firstgid="1" source="Tilesets/Grass.tsx"/>
  <tileset firstgid="81" source="Tilesets/Hills.tsx"/>
  <tileset firstgid="117" source="Tilesets/Fences.tsx"/>
@@ -56,12 +56,12 @@
 </data>
  </layer>
  <objectgroup id="34" name="Location">
-  <object id="373" name="Happy Village" type="Location" x="284" y="908" width="2508" height="1376"/>
-  <object id="374" name="Happy Village" type="Location" x="512" y="1540" width="504" height="500"/>
-  <object id="383" name="Happy Village" type="Location" x="1604" y="1538" width="380" height="516"/>
-  <object id="382" name="Happy Village" type="Location" x="1090" y="1534" width="450" height="518"/>
+  <object id="373" name="Maplewood Village" type="Location" x="284" y="908" width="2508" height="1376"/>
+  <object id="374" name="Maplewood Village" type="Location" x="512" y="1540" width="504" height="500"/>
+  <object id="383" name="Maplewood Village" type="Location" x="1604" y="1538" width="380" height="516"/>
+  <object id="382" name="Maplewood Village" type="Location" x="1090" y="1534" width="450" height="518"/>
   <object id="375" name="Your Room" type="Location" x="606" y="1622" width="316" height="346"/>
-  <object id="377" name="Forest" type="Location" x="256" y="256" width="636" height="580"/>
+  <object id="377" name="Whispering Woods" type="Location" x="256" y="256" width="636" height="580"/>
   <object id="378" name="Guild House" type="Location" x="1174" y="1616" width="280" height="352"/>
   <object id="379" name="Shop House" type="Location" x="1680" y="1624" width="222" height="346"/>
  </objectgroup>
@@ -463,6 +463,7 @@
   <object id="362" name="Trader" type="Trader" gid="144" x="1764" y="1713.33" width="56" height="68"/>
   <object id="385" name="Alice" type="NPC" gid="144" x="1188" y="1746" width="56" height="68"/>
   <object id="386" name="Bob" type="NPC" gid="144" x="1402" y="1744" width="56" height="68"/>
+  <object id="387" name="Charlie" type="NPC" gid="144" x="1024" y="2222" width="56" height="68"/>
  </objectgroup>
  <layer id="31" name="Farmable" width="50" height="40" visible="0">
   <data encoding="csv">

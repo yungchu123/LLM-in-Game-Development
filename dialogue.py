@@ -45,7 +45,7 @@ class Dialogue_Menu:
         # Render and display NPC dialogue
         if self.npc:
             # Wrap text to fit inside the chatbox
-            wrapped_text = self.wrap_text(f"{self.npc.npc_personality['name']}: {self.message}", chatbox_rect.width - 40)
+            wrapped_text = self.wrap_text(f"{self.npc.npc_attributes['name']}: {self.message}", chatbox_rect.width - 40)
             
             # Render each line inside the chatbox
             y_offset = chatbox_rect.y + 20  # Start position for text inside box

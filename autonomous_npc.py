@@ -4,8 +4,10 @@ from support import *
 from timer import Timer
 from sprites import Generic, TextSprite, Interaction, QuestStatusSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
+from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
+import json
 
 from langchain.tools.base import StructuredTool
 from langgraph.prebuilt import create_react_agent
@@ -17,7 +19,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, name, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
         self.group = group
         super().__init__(group)
 
@@ -42,13 +44,8 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.speed = 200
         
         # npc set up
-        self.npc_personality = {
-            'name': name,
-            'likes': ['apple', 'sunny days'],
-            'dislikes': ['corn', 'rainy days'],
-            'conversation': "Speaks with patience and wisdom, often sharing ancient knowledge"
-        }
-        self.name_text = TextSprite(self.pos, group, BLUE, self.npc_personality['name'])
+        self.npc_attributes = attributes
+        self.name_text = TextSprite(self.pos, group, BLUE, self.npc_attributes['name'])
         self.npc_setup()
         
         # collision
@@ -82,21 +79,21 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         
         self.interaction_sprite = Interaction(
                                         (self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, 
-                                        {"name": "NPC", "npc_name": self.npc_personality['name']}, 
-                                        f"[N] Talk to {self.npc_personality['name']}")
+                                        {"name": "NPC", "npc_name": self.npc_attributes['name']}, 
+                                        f"[N] Talk to {self.npc_attributes['name']}")
         
         # Quest
         self.quest = None
         self.quest_status_sprite = None
-        # if self.npc_personality['name'] == "Alice":
-        #     quest = CollectQuest(self.npc_personality['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+        # if self.npc_attributes['name'] == "Alice":
+        #     quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
         #     self.assign_quest(quest)
         # else:
-        #     quest = CollectQuest(self.npc_personality['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
+        #     quest = CollectQuest(self.npc_attributes['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
         #     self.assign_quest(quest)
     
     def __str__(self):
-        return f"NPC Name: {self.npc_personality['name']}"
+        return f"NPC Name: {self.npc_attributes['name']}"
     
     def import_assets(self):
         self.animations = {'up': [],'down': [],'left': [],'right': [],
@@ -292,15 +289,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
         
-        system_message = f"""
-            You are a character living in the Pydew world, a vibrant and dynamic environment where players interact with villagers, explore nature, and complete quests. 
-            Your role is to provide meaningful and context-aware interactions based on your personality, knowledge, and the world state.
-
-            Here is more information about you: {self.npc_personality}
-            
-            Today is rainy day.
-        """
-        
+        system_message = self.get_system_message()
         self.messages = [SystemMessage(system_message)]
         tools = [
             StructuredTool.from_function(self.move_to), 
@@ -308,7 +297,13 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             StructuredTool.from_function(self.use_seed)]
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
-        
+    
+    def get_system_message(self):
+        if self.npc_attributes['role'] == "Assistant":
+            return ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
+        else:
+            return CONVERSATIONAL_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
+    
     def scheduled_input(self, query, dialogue):
         self.messages.append(HumanMessage(query))
         result = self.agent.invoke(
@@ -341,15 +336,22 @@ class NPC_Manager:
         self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
     
     def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):    
+        # Load NPC profiles from JSON
+        with open("npc_profiles.json", "r") as file:
+            npc_data = json.load(file)
+        
         tmx_data = load_pygame('./data/map.tmx')
         
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'NPC':
-                npc = Autonomous_NPC((obj.x, obj.y), obj.name, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
-                self.npcs.add(npc)
+                if obj.name in npc_data:
+                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+                    self.npcs.add(npc)
+                else:
+                    print("NPC not found in json data")
     
     def get_npc_by_name(self, npc_name):
         for npc in self.npcs:
-            if npc.npc_personality['name'] == npc_name:
+            if npc.npc_attributes['name'] == npc_name:
                 return npc
         return None

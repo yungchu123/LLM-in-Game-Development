@@ -112,7 +112,7 @@ class Grid:
         """
         print(f"quest name: {quest_name}, quest description: {quest_description}, interaction_object: {interaction_object}, qty: {target_quantity}")
         rewards = [{"money": 100}, {"experience": 5}, {"name": "corn", "type": "resource", "quantity": 5}] # Hard-coded
-        quest = InteractQuest(self.target_npc.npc_personality['name'], quest_name, quest_description, interaction_object.lower(), rewards, target_quantity)
+        quest = InteractQuest(self.target_npc.npc_attributes['name'], quest_name, quest_description, interaction_object.lower(), rewards, target_quantity)
         self.target_npc.assign_quest(quest)
     
     def build_graph(self):
