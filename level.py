@@ -62,8 +62,7 @@ class Level:
         self.npc_timer = Timer(500)
         
         self.location = Location_Manager()
-        self.location.get_locations()
-        self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event)
+        self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event, self.location.get_locations)
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -142,8 +141,12 @@ class Level:
             
         # Water
         for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
-            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['ground'])
-            
+            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['water'])
+
+        # Hills
+        for x, y, surf in tmx_data.get_layer_by_name('Hills').tiles():
+            Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['hills'])
+        
         # Trader
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'Trader':
@@ -231,7 +234,7 @@ class Level:
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_f] and not self.npc_timer.active:
-            self.grid.get_human_input('Generate a random event with snow anywhere between row from 27 to 30 and col from 15 to 20. Then create a quest')
+            self.grid.get_human_input('Generate a random event. Then create a quest')
             self.npc_timer.activate()
         self.npc_timer.update()
         # keys = pygame.key.get_pressed()

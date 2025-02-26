@@ -29,13 +29,14 @@ EVENT = {
 }
 
 class Grid:
-    def __init__(self, player, all_sprites, interaction_sprites, get_npc_by_name, start_event):
+    def __init__(self, player, all_sprites, interaction_sprites, get_npc_by_name, start_event, get_locations):
         self.display_surface = pygame.display.get_surface()
         self.player = player
         self.all_sprites = all_sprites
         self.interaction_sprites = interaction_sprites
         self.get_npc_by_name = get_npc_by_name
         self.start_event = start_event
+        self.get_locations = get_locations
         self.create_collision_grid()
         self.build_graph()
     
@@ -63,19 +64,18 @@ class Grid:
         
         Args:
             sprite: integer in a list of Grid Items (e.g. 1 for GridItem.FIRE_SPRITE)
-            positions: a list of position with (row, column) tuple. An example is [(2,3), (6,7)]
+            positions: a list of positions with (x-coordinate, y-coordinate) tuple. An example is [(2,3), (6,7)]
         """
         for pos in positions:
-            x = pos[0]
-            y = pos[1]
-            self.grid[y][x].append(GridItem(sprite))
+            x, y = pos
+            print(x, y)
             
             if sprite == GridItem.FIRE_SPRITE.value:
-                FireSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+                FireSprite((x, y), [self.all_sprites, self.interaction_sprites], self.player)
             elif sprite == GridItem.COIN_SPRITE.value:
-                CoinSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+                CoinSprite((x, y), [self.all_sprites, self.interaction_sprites], self.player)
             elif sprite == GridItem.SNOW_PUDDLE_SPRITE.value:
-                SnowPuddleSprite((y * TILE_SIZE, x * TILE_SIZE), [self.all_sprites, self.interaction_sprites], self.player)
+                SnowPuddleSprite((x, y), [self.all_sprites, self.interaction_sprites], self.player)
         
         return {GridItem(sprite).name}
     
@@ -124,11 +124,14 @@ class Grid:
         Your role is to create random events for the game.
         When creating a random events. Use tools calling to modify the game environment.
         
-        The number of horizontal tiles is {self.h_tiles} and the number of vertical tiles is {self.v_tiles}.
+        The size of grid is restricted to {self.h_tiles * TILE_SIZE} for x-coordinates and {self.v_tiles * TILE_SIZE} for y-coordinates.
         The sprite element you can add is limited to a list here: {list(GridItem)}
         Feel free to call the tools more than once.
         
-        For quest generation, here is how player can interact with the event
+        Here is the list of polygons for different locations. Use it when creating event:
+        {self.get_locations()}
+        
+        For quest generation, here is how player can interact with the event. For large locations, can specify the directions (e.g. northeast, south)
         {EVENT}
         """)
 

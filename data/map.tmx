@@ -60,10 +60,10 @@
   <object id="374" name="Happy Village" type="Location" x="512" y="1540" width="504" height="500"/>
   <object id="383" name="Happy Village" type="Location" x="1604" y="1538" width="380" height="516"/>
   <object id="382" name="Happy Village" type="Location" x="1090" y="1534" width="450" height="518"/>
-  <object id="375" name="Your Room" type="Location" x="576" y="1600" width="388" height="444"/>
+  <object id="375" name="Your Room" type="Location" x="606" y="1622" width="316" height="346"/>
   <object id="377" name="Forest" type="Location" x="256" y="256" width="636" height="580"/>
-  <object id="378" name="Guild House" type="Location" x="1148" y="1590" width="324" height="456"/>
-  <object id="379" name="Shop House" type="Location" x="1666" y="1596" width="256" height="450"/>
+  <object id="378" name="Guild House" type="Location" x="1174" y="1616" width="280" height="352"/>
+  <object id="379" name="Shop House" type="Location" x="1680" y="1624" width="222" height="346"/>
  </objectgroup>
  <layer id="33" name="Water" width="50" height="40">
   <data encoding="csv">
