@@ -9,6 +9,7 @@ from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
 import json
 
+from langchain.prompts import PromptTemplate
 from langchain.tools.base import StructuredTool
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
@@ -19,7 +20,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):
         self.group = group
         super().__init__(group)
 
@@ -91,6 +92,25 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # else:
         #     quest = CollectQuest(self.npc_attributes['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
         #     self.assign_quest(quest)
+        
+        # Prompt template
+        self.get_time = get_time
+        self.get_weather = get_weather
+        self.prompt_template = PromptTemplate(
+            input_variables=["query"],
+            template=f"""
+Current time: {self.get_time()}
+Current weather: {self.get_weather()}
+                
+A player has come to you. Here is his prompt: {{query}}.
+                
+Rules:
+- Limit to 75 words
+- Do not use bullet points or markdown annotations.            
+
+What is your response?
+            """
+        )
     
     def __str__(self):
         return f"NPC Name: {self.npc_attributes['name']}"
@@ -305,11 +325,14 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             return CONVERSATIONAL_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
     
     def scheduled_input(self, query, dialogue):
-        self.messages.append(HumanMessage(query))
+        formatted_query = self.prompt_template.format(query=query)
+        self.messages.append(HumanMessage(content=formatted_query))
+
         result = self.agent.invoke(
             {"messages": self.messages},
             {"recursion_limit": 10}
         )
+        
         for m in result['messages']:
             m.pretty_print()
         ai_response = result['messages'][-1].content
@@ -331,11 +354,11 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.animate(dt)
 
 class NPC_Manager:
-    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):
+    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):
         self.npcs = pygame.sprite.Group()
-        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather)
     
-    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer):    
+    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):    
         # Load NPC profiles from JSON
         with open("npc_profiles.json", "r") as file:
             npc_data = json.load(file)
@@ -345,7 +368,7 @@ class NPC_Manager:
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'NPC':
                 if obj.name in npc_data:
-                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer)
+                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather)
                     self.npcs.add(npc)
                 else:
                     print("NPC not found in json data")

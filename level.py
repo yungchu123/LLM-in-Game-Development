@@ -36,16 +36,16 @@ class Level:
         self.announcer = Announcer()
         self.notifications = NotificationManager()
 
+        # sky
+        self.rain = Rain(self.all_sprites)
+        self.raining = False
+        self.sky = Sky()
+
         self.soil_layer = SoilLayer(self.all_sprites)
         self.setup()
         self.overlay = Overlay(self.player)
         self.transition = Transition(self.reset, self.player)
         self.quest_menu = QuestMenu(self.player)
-        
-        # sky
-        self.rain = Rain(self.all_sprites)
-        self.raining = False
-        self.sky = Sky()
         
         # shop
         self.menu = Menu(self.player, self.toggle_shop)
@@ -73,7 +73,9 @@ class Level:
                                 collision_sprites = self.collision_sprites,
                                 tree_sprites = self.tree_sprites,
                                 interaction_sprites = self.interaction_sprites,
-                                soil_layer = self.soil_layer)
+                                soil_layer = self.soil_layer,
+                                get_time = self.get_time,
+                                get_weather = self.get_weather)
         
         # dialogue
         self.conversational_llm = ConversationalLLM()
@@ -173,6 +175,12 @@ class Level:
                     plant.kill()
                     Particle(plant.rect.topleft, plant.image, self.all_sprites, z = LAYERS['main'])
                     self.soil_layer.grid[plant.rect.centery // TILE_SIZE][plant.rect.centerx // TILE_SIZE].remove('P')
+
+    def get_time(self):
+        return self.sky.get_time()
+    
+    def get_weather(self):
+        return "raining" if self.raining else "sunny"
 
     def reset(self):
         # plants

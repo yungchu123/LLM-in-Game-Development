@@ -4,24 +4,38 @@ from timer import Timer
 from support import import_folder
 from sprites import Generic
 from random import randint, choice
+import time
 
 class Sky:
     def __init__(self):
         self.display_surface = pygame.display.get_surface()
         self.full_surf = pygame.Surface((SCREEN_WIDTH,SCREEN_HEIGHT))
-        self.sky_color = [255,255,255]      # day time color
-        self.end_color = (38,101,189)   # night time color
+        self.start_color = [255,255,255]      # day time color
+        self.end_color = (38,101,189)         # night time color
+        self.sky_color = self.start_color[:]
+        self.time = 0                         # number of seconds elapsed
 
     def display(self, dt):
-        for index, value in enumerate(self.end_color):
-            if self.sky_color[index] > value:
-                self.sky_color[index] -= 2 * dt
-
+        """
+        One seconds elapsed in real time = one minutes in game time
+        """
+        self.time += dt
+        time_scale = self.time / DAY_DURATION
+        
+        for index, end_value in enumerate(self.end_color):
+            self.sky_color[index] = max(end_value, self.start_color[index] - time_scale * (self.start_color[index] - end_value))
+            
         self.full_surf.fill(self.sky_color)
         self.display_surface.blit(self.full_surf, (0,0), special_flags = pygame.BLEND_RGBA_MULT)
 
     def reset(self):
-        self.sky_color = [255,255,255]  
+        self.time = 0
+        self.sky_color = self.start_color[:]
+        
+    def get_time(self):
+        hour = int(self.time//60 + 5)
+        minute = int(self.time % 60)
+        return f"{hour}:{minute:02d} {'AM' if hour < 12 else 'PM'}"
 
 class Drop(Generic):
     def __init__(self, surf, pos, moving, groups, z):

@@ -70,3 +70,6 @@ BEIGE = (245, 245, 220)
 CHATBOX_HEIGHT = 200
 CHATBOX_MARGIN = 20
 INPUT_BOX_HEIGHT = 50
+
+# Day Transition
+DAY_DURATION = 600          # 600 seconds = 10 minutes

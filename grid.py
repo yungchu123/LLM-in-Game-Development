@@ -132,6 +132,7 @@ class Grid:
         
         Here is the list of polygons for different locations. Use it when creating event:
         {self.get_locations()}
+        Avoid generating events in two different locations at the same time (e.g. in shop house and maplewood village)
         
         For quest generation, here is how player can interact with the event. For large locations, can specify the directions (e.g. northeast, south)
         {EVENT}
@@ -167,8 +168,8 @@ class Grid:
     def process_input(self, query):
         messages = [HumanMessage(content=query)]
         messages = self.react_graph.invoke({"messages": messages}, self.config)
-        # for m in messages['messages']:
-        #     m.pretty_print()
+        for m in messages['messages']:
+            m.pretty_print()
     
     def get_human_input(self, query, delay=1.0):
         timer = threading.Timer(delay, self.process_input, args=[query])
