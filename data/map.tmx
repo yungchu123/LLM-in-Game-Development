@@ -70,10 +70,10 @@
   <object id="374" name="Maplewood Village" type="Location" x="896" y="1860" width="504" height="500"/>
   <object id="383" name="Maplewood Village" type="Location" x="1988" y="1858" width="380" height="516"/>
   <object id="382" name="Maplewood Village" type="Location" x="1474" y="1854" width="450" height="518"/>
-  <object id="375" name="Your Room" type="Location" x="990" y="1942" width="316" height="346"/>
+  <object id="375" name="Your Room" type="Location" x="978" y="2030" width="344" height="258"/>
   <object id="377" name="Whispering Woods" type="Location" x="706" y="1168" width="630" height="478"/>
-  <object id="378" name="Guild House" type="Location" x="1558" y="1936" width="280" height="352"/>
-  <object id="379" name="Shop House" type="Location" x="2064" y="1944" width="222" height="346"/>
+  <object id="378" name="Guild House" type="Location" x="1558" y="2160" width="280" height="128"/>
+  <object id="379" name="Shop House" type="Location" x="2064" y="2128" width="222" height="162"/>
  </objectgroup>
  <layer id="33" name="Water" width="60" height="50">
   <data encoding="csv">
@@ -537,7 +537,7 @@
   <object id="360" name="Start" x="1248" y="2274.33">
    <point/>
   </object>
-  <object id="365" name="Trader" type="Interaction" x="2082.67" y="1929.33" width="180" height="188"/>
+  <object id="365" name="Trader" type="Interaction" x="2082.67" y="1929.33" width="180" height="124"/>
  </objectgroup>
  <objectgroup id="30" name="NPC">
   <object id="362" name="Trader" type="Trader" gid="144" x="2148" y="2033.33" width="56" height="68"/>

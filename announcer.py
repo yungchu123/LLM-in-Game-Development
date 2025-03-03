@@ -27,14 +27,18 @@ class Announcer:
         self.event_active = False
     
     def draw_event(self):
+        background_image = pygame.image.load('./graphics/objects/banner.png').convert()
+        
         # Background box dimensions
         box_width = 800
         box_x = (SCREEN_WIDTH - box_width) // 2
-        box_height = 200
+        box_height = 250
         box_y = 10
         
         # Draw background
-        pygame.draw.rect(self.display_surface, 'grey', (box_x, box_y, box_width, box_height), border_radius = 20)
+        # pygame.draw.rect(self.display_surface, 'grey', (box_x, box_y, box_width, box_height), border_radius = 20)
+        background_image = pygame.transform.scale(background_image, (box_width, box_height))
+        self.display_surface.blit(background_image, (box_x, box_y))
         
         # Event title
         title_surf = self.title_font.render(self.event_name, True, 'white')         # Render text
@@ -43,15 +47,15 @@ class Announcer:
         
         # Helper text
         helper_surf = self.desc_font.render(self.event_helper, True, 'yellow')
-        helper_rect = helper_surf.get_rect(center=(SCREEN_WIDTH // 2, box_y + box_height - 20))
+        helper_rect = helper_surf.get_rect(center=(SCREEN_WIDTH // 2, box_y + box_height - 40))
         self.display_surface.blit(helper_surf, helper_rect)
         
         # Event description (Need wrapping)
-        wrapped_text = self.wrap_text(self.event_description, box_width - 40)
+        wrapped_text = self.wrap_text(self.event_description, box_width - 100)
         y_offset = box_y + 80  # Start position for text inside box
         for line in wrapped_text:
             npc_surface = self.desc_font.render(line, True, WHITE)
-            self.display_surface.blit(npc_surface, (box_x + 20, y_offset))
+            self.display_surface.blit(npc_surface, (box_x + 60, y_offset))
             y_offset += self.desc_font.get_height() + 5  # Space between lines
     
     def wrap_text(self, text, max_width):
