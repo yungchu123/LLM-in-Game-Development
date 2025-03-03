@@ -3,8 +3,6 @@ You are a character living in the Pydew world, a vibrant and dynamic environment
 Your role is to provide meaningful and context-aware interactions based on your personality, knowledge, and the world state.
 
 Here is more information about you: {npc_attributes}
-
-Today is Rainy day.
 """
 
 # Provide more information about the game

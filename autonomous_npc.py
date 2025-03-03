@@ -77,6 +77,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.interaction_sprites = interaction_sprites
         self.sleep = False
         self.soil_layer = soil_layer
+        self.dialogue_message = ""      # Message for player
         
         self.interaction_sprite = Interaction(
                                         (self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, 
@@ -176,8 +177,8 @@ What is your response?
     
     def create_collision_grid(self):
         # Use for calculating path for movement
-        ground = pygame.image.load('./graphics/world/ground.png')
-        h_tiles, v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
+        tmx_data = load_pygame('./data/map.tmx')
+        h_tiles, v_tiles = tmx_data.width, tmx_data.height
         
         self.grid = [[[] for _ in range(h_tiles)] for _ in range(v_tiles)]
         for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Collision').tiles():
@@ -336,7 +337,7 @@ What is your response?
         for m in result['messages']:
             m.pretty_print()
         ai_response = result['messages'][-1].content
-        dialogue.message = ai_response   # update response in dialogue
+        self.dialogue_message = ai_response
         self.messages.append(ai_response)
     
     def get_input(self, query, dialgoue, delay=1.0):

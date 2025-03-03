@@ -162,9 +162,7 @@ class Dialogue_Menu:
                             self.npc.get_input(user_message, self)
                         self.close_npc_chat()
                         return
-                    print(f'You: {self.input_text}')
                     self.npc.get_input(self.input_text, self)
-                    print(f'NPC: {self.message}')
                     self.reset_input()
                 # Move cursor left
                 elif event.key == pygame.K_LEFT:  
@@ -266,6 +264,7 @@ class Dialogue_Menu:
         if self.message:
             self.draw_chatbox()
         if self.npc_has_quest():
+            self.message = self.npc.quest.description   # display quest description
             if self.npc.quest.status == QuestStatus.NOT_STARTED:
                 self.draw_buttons()
             elif self.npc.quest.status == QuestStatus.IN_PROGRESS:
@@ -273,4 +272,5 @@ class Dialogue_Menu:
             elif self.npc.quest.status == QuestStatus.COMPLETED:
                 self.draw_claim_reward_box()
         else:
+            self.message = self.npc.dialogue_message    # display dialogue message
             self.draw_input_box()

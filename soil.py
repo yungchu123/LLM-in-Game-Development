@@ -87,12 +87,12 @@ class SoilLayer:
         self.plant_sound = pygame.mixer.Sound('./audio/plant.wav') 
         self.plant_sound.set_volume(0.2)
 
-    def create_soil_grid(self):
-        ground = pygame.image.load('./graphics/world/ground.png')
-        h_tiles, v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
+    def create_soil_grid(self):   
+        tmx_data = load_pygame('./data/map.tmx')
+        h_tiles, v_tiles = tmx_data.width, tmx_data.height
         
         self.grid = [[[] for col in range(h_tiles)] for row in range(v_tiles)]
-        for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Farmable').tiles():
+        for x, y, _ in tmx_data.get_layer_by_name('Farmable').tiles():
             self.grid[y][x].append('F')
 
     def create_hit_rects(self):

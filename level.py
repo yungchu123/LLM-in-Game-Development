@@ -214,7 +214,11 @@ class Level:
         if self.dialogue.is_active():
             self.dialogue.update(events)
         else:
+            # Show overlay only when dialogue is not opened
             self.overlay.update()
+            self.quest_menu.draw()
+            for event in events:
+                self.quest_menu.handle_event(event)
         
         self.all_sprites.update(dt) # calls update() on all children
         self.plant_collision()      # harvest full-grown plant on collision
@@ -234,19 +238,15 @@ class Level:
         self.announcer.update()
         self.notifications.update()
         
-        self.quest_menu.draw()
-        for event in events:
-            self.quest_menu.handle_event(event)
-        
         self.location.check_player_location(self.player)
         self.grid.update()
         
         # Testing
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_f] and not self.npc_timer.active:
-            self.grid.get_human_input('Generate a random event. Then create a quest')
-            self.npc_timer.activate()
-        self.npc_timer.update()
+        # keys = pygame.key.get_pressed()
+        # if keys[pygame.K_f] and not self.npc_timer.active:
+        #     self.grid.get_human_input('Generate a random event. Then create a quest')
+        #     self.npc_timer.activate()
+        # self.npc_timer.update()
         # keys = pygame.key.get_pressed()
         # if keys[pygame.K_f] and not self.npc_timer.active:
         #     self.autonomous_npc.get_input('move to the pos (1443, 1450). Then move to (1561,1315).') # original position is (1561,1772)

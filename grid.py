@@ -47,8 +47,8 @@ class Grid:
     
     def create_collision_grid(self):
         # Use for calculating path for movement
-        ground = pygame.image.load('./graphics/world/ground.png')
-        self.h_tiles, self.v_tiles = ground.get_width() // TILE_SIZE, ground.get_height() // TILE_SIZE
+        tmx_data = load_pygame('./data/map.tmx')
+        self.h_tiles, self.v_tiles = tmx_data.width, tmx_data.height
 
         self.grid = [[[] for _ in range(self.h_tiles)] for _ in range(self.v_tiles)]
         for x, y, _ in load_pygame('./data/map.tmx').get_layer_by_name('Collision').tiles():
