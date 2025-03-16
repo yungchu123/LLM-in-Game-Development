@@ -5,7 +5,7 @@ from timer import Timer
 from sprites import Generic, TextSprite, Interaction, QuestStatusSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
 from question import Question
-from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE
+from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE, QUESTIONER_ROLE_TEMPLATE
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
 import json
@@ -21,7 +21,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):
+    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):
         self.group = group
         super().__init__(group)
 
@@ -87,14 +87,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
                                         f"[N] Talk to {self.npc_attributes['name']}")
         
         # Question
-        self.question = Question(
-            question_text="What is the square root of 16?",
-            topic="Algebra",
-            hint="Think of a number that when multiplied by itself gives 16.",
-            explanation="The square root of 16 is 4 because 4 × 4 = 16.",
-            options=["2", "3", "4", "5"],
-            correct_answer=4  
-        )
+        self.question = None
         self.generating_question = False  # Flag to indicate generation is in progress
         
         # Quest
@@ -110,6 +103,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # Prompt template
         self.get_time = get_time
         self.get_weather = get_weather
+        self.get_location = get_location
         self.prompt_template = PromptTemplate(
             input_variables=["query"],
             template=f"""
@@ -352,31 +346,42 @@ What is your response?
         tools = [
             StructuredTool.from_function(self.move_to), 
             StructuredTool.from_function(self.use_tool),
-            StructuredTool.from_function(self.use_seed),
-            StructuredTool.from_function(self.generate_question)]
+            StructuredTool.from_function(self.use_seed)]
+        if self.npc_attributes.get('role', '') == "Questioner":
+            tools.append(StructuredTool.from_function(self.generate_question))
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
     
     def get_system_message(self):
-        if self.npc_attributes['role'] == "Assistant":
+        role = self.npc_attributes.get('role', '')  # Safe access
+        if role == "Assistant":
             return ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
+        elif role == "Questioner":
+            return QUESTIONER_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
         else:
             return CONVERSATIONAL_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
     
     def llm_generate_question(self):
         print("Generating a question ...")
+        
+        location = self.get_location(self.pos)
+        print(location.name, location.topic)
+        
         prompt_template = PromptTemplate(
             input_variables=["query"],
-            template="""
-Generate a question with a topic on Algebra
+            template=f"""
+Generate a new question with a topic on {location.topic}
 
 Make context specific question
-- Location: Whispering Woods
-- Occuputation: Wood cutter
+- Location: {location.name}
+- Occuputation: {self.npc_attributes['occupation']}
 
 Phrase the question in first person perspective, using words like "I" or "me".
-               
-Here is the past conversation history: {conversation_history}    
+Keep the hint to one sentence.
+Keep the explanation to not more than 70 words.
+Do not use bullet points or markdown annotations.
+
+Here is the past conversation history: {{conversation_history}}    
 Try to make a new question
             """)
         
@@ -394,7 +399,8 @@ Try to make a new question
         timer.start()
     
     def scheduled_input(self, query):
-        self.messages.append(HumanMessage(content=query))
+        formatted_query = self.prompt_template.format(query=query)
+        self.messages.append(HumanMessage(content=formatted_query))
 
         result = self.agent.invoke(
             {"messages": self.messages},
@@ -409,8 +415,7 @@ Try to make a new question
     
     def get_user_input(self, query, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
-        formatted_query = self.prompt_template.format(query=query)
-        timer = threading.Timer(delay, self.scheduled_input, args=[formatted_query])
+        timer = threading.Timer(delay, self.scheduled_input, args=[query])
         timer.start()
     
     def update(self, dt):
@@ -422,16 +427,16 @@ Try to make a new question
         self.move(dt)
         self.animate(dt)
         
-        if self.question.status != 'not attempted' and not self.timers['generate question'].active and not self.generating_question:
+        if self.npc_attributes.get('role', '') == "Questioner" and getattr(self.question, "status", None) != "not attempted" and not self.timers['generate question'].active and not self.generating_question:
             self.timers['generate question'].activate()
             self.generating_question = True
 
 class NPC_Manager:
-    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):
+    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):
         self.npcs = pygame.sprite.Group()
-        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather)
+        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location)
     
-    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):    
+    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):    
         # Load NPC profiles from JSON
         with open("npc_profiles.json", "r") as file:
             npc_data = json.load(file)
@@ -441,7 +446,7 @@ class NPC_Manager:
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'NPC':
                 if obj.name in npc_data:
-                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather)
+                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location)
                     self.npcs.add(npc)
                 else:
                     print("NPC not found in json data")

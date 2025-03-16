@@ -42,6 +42,7 @@ class Level:
         self.sky = Sky()
 
         self.soil_layer = SoilLayer(self.all_sprites)
+        self.location = Location_Manager()
         self.setup()
         self.overlay = Overlay(self.player)
         self.transition = Transition(self.reset, self.player)
@@ -61,7 +62,6 @@ class Level:
         # Timer for npc
         self.npc_timer = Timer(500)
         
-        self.location = Location_Manager()
         self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event, self.location.get_locations)
 
     def setup(self):
@@ -75,7 +75,8 @@ class Level:
                                 interaction_sprites = self.interaction_sprites,
                                 soil_layer = self.soil_layer,
                                 get_time = self.get_time,
-                                get_weather = self.get_weather)
+                                get_weather = self.get_weather,
+                                get_location = self.location.get_location)
         
         # dialogue
         self.conversational_llm = ConversationalLLM()

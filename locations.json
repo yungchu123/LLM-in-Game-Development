@@ -1,0 +1,26 @@
+{
+    "Maplewood Village": {
+        "description": "the central hub of Pydew, where players can interact with villagers, trade goods, and take on quests.",
+        "topic": ""
+    },
+    "Whispering Woods": {
+        "description": "a dense and mythical forest home to apple trees",
+        "topic": "Algebra and Equations"
+    },
+    "Golden Meadow": {
+        "description": "a land rich with fertile land for players to grow crops",
+        "topic": "Arithmetic and Ratios"
+    },
+    "Waterworks": {
+        "description": "a village's water system that manages water pipes and irrigations",
+        "topic": "Fractions and Percentages"
+    },
+    "Guild House": {
+        "description": "",
+        "topic": ""
+    },
+    "Shop House": {
+        "description": "",
+        "topic": ""
+    }
+}

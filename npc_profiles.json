@@ -15,12 +15,40 @@
         "dislikes": ["corn", "rainy days"],
         "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
     },
-    "Charlie": {
-        "name": "Charlie",
+    "Eldric Thornbrook": {
+        "name": "Eldric Thornbrook",
         "role": "Assistant",
         "gender": "Male",
         "likes": ["carrot", "sunny days"],
         "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "occupation": "Village chief"
+    },
+    "Logan Woodsman": {
+        "name": "Logan Woodsman",
+        "role": "Questioner",
+        "gender": "Male",
+        "likes": ["carrot", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "occupation": "Wood chopper"
+    }, 
+    "Brooks Clearwater": {
+        "name": "Brooks Clearwater",
+        "role": "Questioner",
+        "gender": "Male",
+        "likes": ["carrot", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "occupation": "Plumber"
+    },
+    "Eli Sunfield": {
+        "name": "Eli Sunfield",
+        "role": "Questioner",
+        "gender": "Male",
+        "likes": ["carrot", "sunny days"],
+        "dislikes": ["corn", "rainy days"],
+        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "occupation": "Farmer"
     }
 }
