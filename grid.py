@@ -176,6 +176,7 @@ class Grid:
         timer.start()
         
     def trigger_event(self, delay=1.0):
+        return
         if self.target_npc.quest != None:
             return
         print('trigger event')

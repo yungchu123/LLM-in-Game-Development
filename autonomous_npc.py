@@ -4,6 +4,7 @@ from support import *
 from timer import Timer
 from sprites import Generic, TextSprite, Interaction, QuestStatusSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
+from question import Question
 from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
@@ -83,6 +84,16 @@ class Autonomous_NPC(pygame.sprite.Sprite):
                                         (self.rect.x,self.rect.y), (self.rect.width, self.rect.height), self.interaction_sprites, 
                                         {"name": "NPC", "npc_name": self.npc_attributes['name']}, 
                                         f"[N] Talk to {self.npc_attributes['name']}")
+        
+        # Question
+        self.question = Question(
+            question_text="What is the square root of 16?",
+            topic="Algebra",
+            hint="Think of a number that when multiplied by itself gives 16.",
+            explanation="The square root of 16 is 4 because 4 × 4 = 16.",
+            options=["2", "3", "4", "5"],
+            correct_answer=4  
+        )
         
         # Quest
         self.quest = None

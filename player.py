@@ -79,6 +79,8 @@ class Player(pygame.sprite.Sprite):
         self.quests = []
         self.completed_quests = []
         
+        self.completed_questions = []
+        
         self.level_system = LevelSystem(add_notification=self.add_notification)
 
     def gain_experience(self, amount):

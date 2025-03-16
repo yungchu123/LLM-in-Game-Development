@@ -30,6 +30,9 @@ class Dialogue_Menu:
         self.BOX_WIDTH = SCREEN_WIDTH - 2 * CHATBOX_MARGIN
         self.BOX_HEIGHT = INPUT_BOX_HEIGHT
         
+        # Options color for Questions
+        self.option_colors = [GREY, GREY, GREY, GREY]
+        
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
         # NPC Chatbox
@@ -135,15 +138,69 @@ class Dialogue_Menu:
             decline_text,
             (self.decline_button_rect.centerx - decline_text.get_width() // 2, self.decline_button_rect.centery - decline_text.get_height() // 2),
         )
+    
+    def draw_question_options(self):
+        # Define button properties
+        num_buttons = len(self.npc.question.options)  # Get number of options
+        button_width = self.BOX_WIDTH // num_buttons  # Divide available space
+        button_height = self.BOX_HEIGHT
+        button_y = self.BOX_Y
+        
+        self.button_rects = []  # Store button rects for event handling
+        
+        for i, option in enumerate(self.npc.question.options):
+            # Calculate button position
+            button_x = self.BOX_X + i * button_width
+            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+            self.button_rects.append(button_rect)  # Store rect
+            
+            # Draw button
+            pygame.draw.rect(self.display_surface, self.option_colors[i], button_rect, border_radius=10)
+            pygame.draw.rect(self.display_surface, WHITE, button_rect, width=3, border_radius=10)
+            
+            # Render button text
+            option_text = self.font.render(option, True, WHITE)
+            
+            # Center text inside button
+            self.display_surface.blit(
+                option_text,
+                (button_rect.centerx - option_text.get_width() // 2, button_rect.centery - option_text.get_height() // 2),
+            )
 
     def input(self, events):
         for event in events:
+            # Exit dialogue menu
             if event.type == pygame.KEYDOWN:  
-                # Exit dialogue menu
                 if event.key == pygame.K_ESCAPE: 
                     self.close_npc_chat()
+            
+        if self.npc_has_question():
+            self.handle_question_input(events)
+        elif self.npc_has_quest():
+            self.handle_event_input(events)
+        else:
+            self.handle_text_input(events)
+
+    def handle_question_input(self, events):
+        if self.npc.question.status != "not attempted":
+            return
+        
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for i, button_rect in enumerate(self.button_rects):
+                    if button_rect.collidepoint(event.pos):
+                        if self.npc.question.check_answer(self.npc.question.options[i], self.player):
+                            self.message = f"Correct! {self.npc.question.explanation}"
+                            self.option_colors[i] = GREEN 
+                        else:
+                            self.message = f"Incorrect. {self.npc.question.explanation}"
+                            self.option_colors[i] = RED
+    
+    def handle_text_input(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
                 # Remove the last character from the input text
-                elif event.key == pygame.K_BACKSPACE: 
+                if event.key == pygame.K_BACKSPACE: 
                     self.input_text = self.input_text[:max(0, self.selection_start - 1)] + self.input_text[self.selection_end:]
                     self.selection_start = max(0, self.selection_start - 1)
                     self.selection_end = self.selection_start
@@ -190,21 +247,23 @@ class Dialogue_Menu:
                     self.input_text = self.input_text[:self.selection_start] + event.unicode + self.input_text[self.selection_end:]
                     self.selection_start += 1
                     self.selection_end = self.selection_start
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if self.npc_has_quest():
-                    if self.npc.quest.status == QuestStatus.NOT_STARTED:
-                        if self.accept_button_rect.collidepoint(event.pos):
-                            self.npc.assign_quest_to_player(self.player)
-                            self.close_npc_chat()
-                        elif self.decline_button_rect.collidepoint(event.pos):
-                            self.close_npc_chat()
-                    elif self.npc.quest.status == QuestStatus.COMPLETED:
-                        if self.claim_reward_box_rect.collidepoint(event.pos):
-                            self.npc.quest.grant_reward(self.player)
-                            self.npc.quest = None       # Remove quest from NPC here for simplicity
-                            self.message = ""           # Remove quest name from message
-                            self.close_npc_chat()
     
+    def handle_event_input(self, events):
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.npc.quest.status == QuestStatus.NOT_STARTED:
+                    if self.accept_button_rect.collidepoint(event.pos):
+                        self.npc.assign_quest_to_player(self.player)
+                        self.close_npc_chat()
+                    elif self.decline_button_rect.collidepoint(event.pos):
+                        self.close_npc_chat()
+                elif self.npc.quest.status == QuestStatus.COMPLETED:
+                    if self.claim_reward_box_rect.collidepoint(event.pos):
+                        self.npc.quest.grant_reward(self.player)
+                        self.npc.quest = None       # Remove quest from NPC here for simplicity
+                        self.message = ""           # Remove quest name from message
+                        self.close_npc_chat()
+        
     def wrap_text(self, text, max_width):
         """Splits text into multiple lines based on available width."""
         words = text.split()  # Split text into individual words
@@ -233,7 +292,10 @@ class Dialogue_Menu:
         self.player = player
         
         # Check if have quest
-        if self.npc_has_quest():
+        if self.npc_has_question():
+            self.message = self.npc.question.question_text
+            self.option_colors = [GREY, GREY, GREY, GREY]
+        elif self.npc_has_quest():
             self.message = self.npc.quest.description
             
         self.active = True
@@ -259,11 +321,14 @@ class Dialogue_Menu:
     def npc_has_quest(self):
         return self.npc.quest != None
     
+    def npc_has_question(self):
+        return self.npc.question != None
+    
     def update(self, events):
         self.input(events)
-        if self.message:
-            self.draw_chatbox()
-        if self.npc_has_quest():
+        if self.npc_has_question():
+            self.draw_question_options()
+        elif self.npc_has_quest():
             self.message = self.npc.quest.description   # display quest description
             if self.npc.quest.status == QuestStatus.NOT_STARTED:
                 self.draw_buttons()
@@ -274,3 +339,6 @@ class Dialogue_Menu:
         else:
             self.message = self.npc.dialogue_message    # display dialogue message
             self.draw_input_box()
+            
+        if self.message:
+            self.draw_chatbox()
