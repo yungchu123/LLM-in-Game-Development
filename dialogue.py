@@ -215,10 +215,10 @@ class Dialogue_Menu:
                             npc_name = match.group(1)
                             user_message = match.group(2)
                             self.npc = self.get_npc_by_name(npc_name)
-                            self.npc.get_input(user_message, self)
+                            self.npc.get_user_input(user_message)
                         self.close_npc_chat()
                         return
-                    self.npc.get_input(self.input_text, self)
+                    self.npc.get_user_input(self.input_text)
                     self.reset_input()
                 # Move cursor left
                 elif event.key == pygame.K_LEFT:  

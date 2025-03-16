@@ -57,7 +57,8 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # timers
         self.timers =  {
             'tool use': Timer(1000),
-            'seed use': Timer(1000)
+            'seed use': Timer(1000),
+            'generate question': Timer(10000, self.llm_generate_question)
         }
          
         # inventory
@@ -94,6 +95,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
             options=["2", "3", "4", "5"],
             correct_answer=4  
         )
+        self.generating_question = False  # Flag to indicate generation is in progress
         
         # Quest
         self.quest = None
@@ -258,6 +260,30 @@ What is your response?
         else:
             return f"not even {seed} seed in inventory"
     
+    def generate_question(self, question_text: str, options: list, correct_answer: str, hint: str, explanation: str):
+        """
+        Generate a multiple-choice question for player to solve
+        
+        Args:
+            question_text: The question to be asked.
+            options: A list of 4 choices for multiple-choice questions. 
+            correct_answer: The correct answer.
+            hint: A hint to help the player.
+            explanation: Step-by-step explanation of the answer.
+        """
+        print(f"generated a question: {question_text}, {options}, {correct_answer}, {hint}, {explanation}")
+        self.question = Question(
+            question_text=question_text,
+            topic="Algebra",
+            hint=hint,
+            explanation=explanation,
+            options=options,
+            correct_answer=correct_answer  
+        )
+        self.messages.append(f"generated a question: {question_text}, {options}, {correct_answer}, {hint}, {explanation}")
+        
+        return "question generated successfully"
+    
     def timer_wrapper(self, duration):
         # Create delay in lang chain tools calling
         llm_timer = Timer(duration)
@@ -326,7 +352,8 @@ What is your response?
         tools = [
             StructuredTool.from_function(self.move_to), 
             StructuredTool.from_function(self.use_tool),
-            StructuredTool.from_function(self.use_seed)]
+            StructuredTool.from_function(self.use_seed),
+            StructuredTool.from_function(self.generate_question)]
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
     
@@ -336,9 +363,38 @@ What is your response?
         else:
             return CONVERSATIONAL_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
     
-    def scheduled_input(self, query, dialogue):
-        formatted_query = self.prompt_template.format(query=query)
-        self.messages.append(HumanMessage(content=formatted_query))
+    def llm_generate_question(self):
+        print("Generating a question ...")
+        prompt_template = PromptTemplate(
+            input_variables=["query"],
+            template="""
+Generate a question with a topic on Algebra
+
+Make context specific question
+- Location: Whispering Woods
+- Occuputation: Wood cutter
+
+Phrase the question in first person perspective, using words like "I" or "me".
+               
+Here is the past conversation history: {conversation_history}    
+Try to make a new question
+            """)
+        
+        formatted_query = prompt_template.format(conversation_history = self.messages)
+        
+        def execute_llm():
+            result = self.agent.invoke(
+                {"messages": formatted_query},
+                {"recursion_limit": 10}
+            )
+            
+            self.generating_question = False
+        
+        timer = threading.Timer(1, execute_llm)
+        timer.start()
+    
+    def scheduled_input(self, query):
+        self.messages.append(HumanMessage(content=query))
 
         result = self.agent.invoke(
             {"messages": self.messages},
@@ -351,9 +407,10 @@ What is your response?
         self.dialogue_message = ai_response
         self.messages.append(ai_response)
     
-    def get_input(self, query, dialgoue, delay=1.0):
+    def get_user_input(self, query, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
-        timer = threading.Timer(delay, self.scheduled_input, args=[query, dialgoue])
+        formatted_query = self.prompt_template.format(query=query)
+        timer = threading.Timer(delay, self.scheduled_input, args=[formatted_query])
         timer.start()
     
     def update(self, dt):
@@ -364,6 +421,10 @@ What is your response?
         
         self.move(dt)
         self.animate(dt)
+        
+        if self.question.status != 'not attempted' and not self.timers['generate question'].active and not self.generating_question:
+            self.timers['generate question'].activate()
+            self.generating_question = True
 
 class NPC_Manager:
     def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather):
