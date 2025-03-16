@@ -24,13 +24,15 @@ class Question:
         self.options = options
         self.correct_answer = correct_answer
         self.status = "not attempted"
+        self.selected = -1                # Index of option picked
 
     def __str__(self):
         return f"Qn id: {self.id} | Topic: {self.topic} | Attempted: {self.status} "
 
     def check_answer(self, user_answer, player):
         """Checks if the answer is correct and provides explanation."""
-        if str(user_answer).strip().lower() == str(self.correct_answer).strip().lower():
+        self.selected = user_answer
+        if str(self.options[user_answer]).strip().lower() == str(self.correct_answer).strip().lower():
             print("✅ Correct!")
             self.handle_correct(player)
             return True

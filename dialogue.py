@@ -30,9 +30,6 @@ class Dialogue_Menu:
         self.BOX_WIDTH = SCREEN_WIDTH - 2 * CHATBOX_MARGIN
         self.BOX_HEIGHT = INPUT_BOX_HEIGHT
         
-        # Options color for Questions
-        self.option_colors = [GREY, GREY, GREY, GREY]
-        
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
         # NPC Chatbox
@@ -155,7 +152,11 @@ class Dialogue_Menu:
             self.button_rects.append(button_rect)  # Store rect
             
             # Draw button
-            pygame.draw.rect(self.display_surface, self.option_colors[i], button_rect, border_radius=10)
+            btn_color = GREY
+            if i == self.npc.question.selected != -1:
+                btn_color = GREEN if self.npc.question.status == "correct" else RED
+            
+            pygame.draw.rect(self.display_surface, btn_color, button_rect, border_radius=10)
             pygame.draw.rect(self.display_surface, WHITE, button_rect, width=3, border_radius=10)
             
             # Render button text
@@ -189,12 +190,10 @@ class Dialogue_Menu:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i, button_rect in enumerate(self.button_rects):
                     if button_rect.collidepoint(event.pos):
-                        if self.npc.question.check_answer(self.npc.question.options[i], self.player):
+                        if self.npc.question.check_answer(i, self.player):
                             self.message = f"Correct! {self.npc.question.explanation}"
-                            self.option_colors[i] = GREEN 
                         else:
                             self.message = f"Incorrect. {self.npc.question.explanation}"
-                            self.option_colors[i] = RED
     
     def handle_text_input(self, events):
         for event in events:
