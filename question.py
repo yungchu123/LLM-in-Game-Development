@@ -1,3 +1,5 @@
+import random
+
 class Question:
     question_counter = 0
     
@@ -20,6 +22,8 @@ class Question:
         self.topic = topic
         self.hint = hint
         self.hint_unlocked = False
+        self.fifty_fifty_unlocked = False
+        self.removed_options = []        # index of removed options from fifty fifty
         self.explanation = explanation
         self.options = options
         self.correct_answer = correct_answer
@@ -56,3 +60,20 @@ class Question:
         self.status = "incorrect"
         player.completed_questions.append(self)
         print([str(q) for q in player.completed_questions])
+        
+    def get_hint(self, player):
+        if player.money < 50 or self.hint_unlocked:
+            return
+        
+        player.money -= 50
+        self.hint_unlocked = True
+    
+    def get_fifty_fifty(self, player):
+        if player.money < 100 or self.fifty_fifty_unlocked:
+            return
+        
+        player.money -= 100
+        self.fifty_fifty_unlocked = True
+        
+        wrong_answer_indexes = [i for i, x in enumerate(self.options) if x != self.correct_answer]
+        self.removed_options = random.sample(wrong_answer_indexes, 2)        

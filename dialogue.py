@@ -102,42 +102,39 @@ class Dialogue_Menu:
 
     def draw_claim_reward_box(self):   
         # Draw background box
-        self.claim_reward_box_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH, self.BOX_HEIGHT)
-        pygame.draw.rect(self.display_surface, GREEN, self.claim_reward_box_rect, border_radius=10)
-        pygame.draw.rect(self.display_surface, BLACK, self.claim_reward_box_rect, width=3, border_radius=10)
-        
-        # Render text
-        text = self.font.render("Claim reward", True, BLACK)
-        text_x = self.BOX_X + self.BOX_WIDTH // 2 - text.get_width() // 2
-        text_y = self.BOX_Y + self.BOX_HEIGHT // 2 - text.get_height() // 2
-        self.display_surface.blit(text, (text_x, text_y))
+        self.claim_reward_box_rect = self.draw_button(
+            x=self.BOX_X, 
+            y=self.BOX_Y, 
+            width=self.BOX_WIDTH, 
+            height=self.BOX_HEIGHT,
+            text="Claim reward", 
+            border_radius=10, 
+            background_color=GREEN, 
+            border_color=BLACK, 
+            text_color=BLACK)
 
-    def draw_buttons(self):
-        # Define button rects
-        self.accept_button_rect = pygame.Rect(self.BOX_X, self.BOX_Y, self.BOX_WIDTH // 2, self.BOX_HEIGHT)
-        self.decline_button_rect = pygame.Rect(self.BOX_X + self.BOX_WIDTH // 2, self.BOX_Y, self.BOX_WIDTH // 2, self.BOX_HEIGHT)
+    def draw_accept_decline_box(self):
+        self.accept_button_rect = self.draw_button(
+            x=self.BOX_X, 
+            y=self.BOX_Y, 
+            width=self.BOX_WIDTH // 2, 
+            height=self.BOX_HEIGHT,
+            text="Accept", 
+            border_radius=10, 
+            background_color=GREEN, 
+            border_color=BLACK, 
+            text_color=WHITE)
         
-        # Draw Accept Button
-        pygame.draw.rect(self.display_surface, GREEN, self.accept_button_rect, border_radius=10)
-        pygame.draw.rect(self.display_surface, BLACK, self.accept_button_rect, width=3, border_radius=10)
-
-        # Draw Decline Button
-        pygame.draw.rect(self.display_surface, RED, self.decline_button_rect, border_radius=10)
-        pygame.draw.rect(self.display_surface, BLACK, self.decline_button_rect, width=3, border_radius=10)
-
-        # Button Text
-        accept_text = self.font.render("Accept", True, WHITE)
-        decline_text = self.font.render("Decline", True, WHITE)
-        
-        # Center text inside buttons
-        self.display_surface.blit(
-            accept_text,
-            (self.accept_button_rect.centerx - accept_text.get_width() // 2, self.accept_button_rect.centery - accept_text.get_height() // 2),
-        )
-        self.display_surface.blit(
-            decline_text,
-            (self.decline_button_rect.centerx - decline_text.get_width() // 2, self.decline_button_rect.centery - decline_text.get_height() // 2),
-        )
+        self.decline_button_rect = self.draw_button(
+            x=self.BOX_X + self.BOX_WIDTH // 2, 
+            y=self.BOX_Y, 
+            width=self.BOX_WIDTH // 2, 
+            height=self.BOX_HEIGHT,
+            text="Decline", 
+            border_radius=10, 
+            background_color=RED, 
+            border_color=BLACK, 
+            text_color=WHITE)
     
     def draw_question_options(self):
         # Define button properties
@@ -149,27 +146,84 @@ class Dialogue_Menu:
         self.button_rects = []  # Store button rects for event handling
         
         for i, option in enumerate(self.npc.question.options):
-            # Calculate button position
-            button_x = self.BOX_X + i * button_width
-            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
-            self.button_rects.append(button_rect)  # Store rect
+            button_x = self.BOX_X + i * button_width    
             
-            # Draw button
             btn_color = GREY
+            
+            # an option has been selected by player
             if i == self.npc.question.selected != -1:
                 btn_color = GREEN if self.npc.question.status == "correct" else RED
             
-            pygame.draw.rect(self.display_surface, btn_color, button_rect, border_radius=10)
-            pygame.draw.rect(self.display_surface, WHITE, button_rect, width=3, border_radius=10)
+            # hide options if player unlock fifty fifty
+            if self.npc.question.fifty_fifty_unlocked:
+                if i in self.npc.question.removed_options:
+                    option = ""
             
-            # Render button text
-            option_text = self.font.render(option, True, WHITE)
+            button_rect = self.draw_button(
+                x=button_x, 
+                y=button_y, 
+                width=button_width, 
+                height=button_height,
+                text=option, 
+                border_radius=10, 
+                background_color=btn_color, 
+                border_color=WHITE, 
+                text_color=WHITE)
             
-            # Center text inside button
-            self.display_surface.blit(
-                option_text,
-                (button_rect.centerx - option_text.get_width() // 2, button_rect.centery - option_text.get_height() // 2),
-            )
+            self.button_rects.append(button_rect)  # Store rect
+        
+        # display hint if player unlock hint
+        if self.npc.question.hint_unlocked:
+            self.draw_button(
+                x=CHATBOX_MARGIN,
+                y=30,
+                width=SCREEN_WIDTH - 2 * CHATBOX_MARGIN,
+                height=60,
+                text=self.npc.question.hint,
+                border_radius=10,
+                background_color=WHITE,
+                border_color=BLACK,
+                text_color=BLACK)
+        
+        # Draw Hint Button
+        self.hint_button_rect = self.draw_button(
+            x=CHATBOX_MARGIN, 
+            y=SCREEN_HEIGHT - CHATBOX_HEIGHT - CHATBOX_MARGIN - INPUT_BOX_HEIGHT - 80, 
+            width=180, 
+            height=60,
+            text="Hint (-50)", 
+            border_radius=10, 
+            background_color=WHITE if not self.npc.question.hint_unlocked else GREEN, 
+            border_color=BLACK, 
+            text_color=BLACK)
+        
+        # Draw 50/50 Button
+        self.fifty_fifty_button_rect = self.draw_button(
+            x=CHATBOX_MARGIN + 220, 
+            y=SCREEN_HEIGHT - CHATBOX_HEIGHT - CHATBOX_MARGIN - INPUT_BOX_HEIGHT - 80, 
+            width=180, 
+            height=60,
+            text="50/50 (-100)", 
+            border_radius=10, 
+            background_color=WHITE if not self.npc.question.fifty_fifty_unlocked else GREEN, 
+            border_color=BLACK, 
+            text_color=BLACK)
+        
+        # Display Gold
+        money_text = self.font.render(f'Money: {self.player.money}', True, BLACK)
+        self.display_surface.blit(money_text, (CHATBOX_MARGIN, SCREEN_HEIGHT - CHATBOX_HEIGHT - CHATBOX_MARGIN - INPUT_BOX_HEIGHT - 110))
+    
+    def draw_button(self, x, y, width, height, text, border_radius, background_color, border_color, text_color):
+        button_rect = pygame.Rect(x, y, width, height)
+        pygame.draw.rect(self.display_surface, background_color, button_rect, border_radius=border_radius)
+        pygame.draw.rect(self.display_surface, border_color, button_rect, width=3, border_radius=border_radius)
+        button_text = self.font.render(text, True, text_color)
+        self.display_surface.blit(
+            button_text,
+            (button_rect.centerx - button_text.get_width() // 2, button_rect.centery - button_text.get_height() // 2),  # Center text
+        )
+        
+        return button_rect
 
     def input(self, events):
         for event in events:
@@ -193,10 +247,18 @@ class Dialogue_Menu:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i, button_rect in enumerate(self.button_rects):
                     if button_rect.collidepoint(event.pos):
+                        # disable options from fifty
+                        if self.npc.question.fifty_fifty_unlocked:
+                            if i in self.npc.question.removed_options:
+                                return
                         if self.npc.question.check_answer(i, self.player):
                             self.message = f"Correct! {self.npc.question.explanation}"
                         else:
                             self.message = f"Incorrect. {self.npc.question.explanation}"
+                if self.hint_button_rect.collidepoint(event.pos):
+                    self.npc.question.get_hint(self.player)
+                elif self.fifty_fifty_button_rect.collidepoint(event.pos):
+                    self.npc.question.get_fifty_fifty(self.player)
     
     def handle_text_input(self, events):
         for event in events:
@@ -337,7 +399,7 @@ class Dialogue_Menu:
         elif self.quest_active and self.npc_has_quest():
             self.message = self.npc.quest.description   # display quest description
             if self.npc.quest.status == QuestStatus.NOT_STARTED:
-                self.draw_buttons()
+                self.draw_accept_decline_box()
             elif self.npc.quest.status == QuestStatus.IN_PROGRESS:
                 self.draw_progress_box()
             elif self.npc.quest.status == QuestStatus.COMPLETED:

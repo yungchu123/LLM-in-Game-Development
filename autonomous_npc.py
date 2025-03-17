@@ -269,7 +269,7 @@ What is your response?
         print(f"generated a question: {question_text}, {options}, {correct_answer}, {hint}, {explanation}")
         self.question = Question(
             question_text=question_text,
-            topic="Algebra",
+            topic=self.get_location(self.pos).topic,
             hint=hint,
             explanation=explanation,
             options=options,
