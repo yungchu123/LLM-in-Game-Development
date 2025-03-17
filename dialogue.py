@@ -30,6 +30,9 @@ class Dialogue_Menu:
         self.BOX_WIDTH = SCREEN_WIDTH - 2 * CHATBOX_MARGIN
         self.BOX_HEIGHT = INPUT_BOX_HEIGHT
         
+        self.quest_active = False
+        self.question_active = False
+        
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
         # NPC Chatbox
@@ -175,9 +178,9 @@ class Dialogue_Menu:
                 if event.key == pygame.K_ESCAPE: 
                     self.close_npc_chat()
             
-        if self.npc_has_question():
+        if self.question_active and self.npc_has_question():
             self.handle_question_input(events)
-        elif self.npc_has_quest():
+        elif self.quest_active and self.npc_has_quest():
             self.handle_event_input(events)
         else:
             self.handle_text_input(events)
@@ -284,23 +287,27 @@ class Dialogue_Menu:
 
         return lines  
 
-    def start_npc_chat(self, player, npc_name):
+    def start_npc_chat(self, player, npc_name, quest = False, question = False):
         if not self.can_open_chat:
             return
         self.npc = self.get_npc_by_name(npc_name)
         self.player = player
         
         # Check if have quest
-        if self.npc_has_question():
+        if question and self.npc_has_question():
+            self.question_active = True
             self.message = self.npc.question.question_text
             self.option_colors = [GREY, GREY, GREY, GREY]
-        elif self.npc_has_quest():
+        elif quest and self.npc_has_quest():
+            self.quest_active = True
             self.message = self.npc.quest.description
             
         self.active = True
     
     def close_npc_chat(self):
         self.active = False
+        self.quest_active = False
+        self.question_active = False
         self.reset_input()
         self.can_open_chat = False
         threading.Timer(0.1, self.enable_chat).start()
@@ -325,9 +332,9 @@ class Dialogue_Menu:
     
     def update(self, events):
         self.input(events)
-        if self.npc_has_question():
+        if self.question_active and self.npc_has_question():
             self.draw_question_options()
-        elif self.npc_has_quest():
+        elif self.quest_active and self.npc_has_quest():
             self.message = self.npc.quest.description   # display quest description
             if self.npc.quest.status == QuestStatus.NOT_STARTED:
                 self.draw_buttons()

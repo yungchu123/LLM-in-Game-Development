@@ -146,20 +146,21 @@ class TextSprite(pygame.sprite.Sprite):
         self.rect.center = (self.pos.x, self.pos.y - 40)
 
 class ToolTipSprite(pygame.sprite.Sprite):
-    def __init__(self, player, groups, text="Press N to interact"):
+    def __init__(self, player, groups, text="Press N to interact", level=0):
         super().__init__(groups)
         self.player = player
         self.text = text
+        self.level = level
         self.z = LAYERS['tool tip']
         self.font = pygame.font.Font(None, 24)  # Default pygame font, size 24
         self.image = self.font.render(self.text, True, (255, 255, 255))  # White text
-        self.rect = self.image.get_rect(topright=(self.player.rect.left + 50, self.player.rect.top + 20))  # Position top left abover player
+        self.rect = self.image.get_rect(topright=(self.player.rect.left + 50, self.player.rect.top + 20 + self.level * 40))  # Position top left abover player
         self.visible = False  # Default: Hidden
 
     def update(self, dt):
         """Update tooltip position & visibility."""
         if self.visible:
-            self.rect.topright = (self.player.rect.left + 50, self.player.rect.top + 20)
+            self.rect.topright = (self.player.rect.left + 50, self.player.rect.top + 20 + self.level * 40)
         else:
             self.image = pygame.Surface((0, 0))  # Hide tooltip
 
@@ -225,3 +226,19 @@ class QuestStatusSprite(pygame.sprite.Sprite):
             return
         
         self.animate(dt)
+        
+class QuestionMarkSprite(pygame.sprite.Sprite):
+    def __init__(self, pos, groups):
+        
+        # Load Image
+        self.image = pygame.image.load('./graphics/objects/question_mark.png').convert_alpha()
+        
+        # Position the Sprite
+        self.pos = pos
+        self.vertical_displacement = -80 # Position above character
+        self.rect = self.image.get_rect(center=(self.pos.x, self.pos.y + self.vertical_displacement))
+        self.z = LAYERS['name text']
+        super().__init__(groups)
+        
+    def update(self, dt):
+        self.rect.center = (self.pos.x, self.pos.y + self.vertical_displacement)

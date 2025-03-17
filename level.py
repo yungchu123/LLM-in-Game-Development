@@ -95,7 +95,8 @@ class Level:
                     toggle_shop = self.toggle_shop,
                     is_shop_active = self.is_shop_active,
                     dialogue_menu = self.dialogue,
-                    add_notification = self.notifications.add_notification)
+                    add_notification = self.notifications.add_notification,
+                    get_npc_by_name = self.npc_manager.get_npc_by_name)
             
             if obj.name == 'Bed':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Sleep')

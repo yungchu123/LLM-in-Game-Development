@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
-from sprites import Generic, TextSprite, Interaction, QuestStatusSprite
+from sprites import Generic, TextSprite, Interaction, QuestStatusSprite, QuestionMarkSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
 from question import Question
 from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE, QUESTIONER_ROLE_TEMPLATE
@@ -89,6 +89,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # Question
         self.question = None
         self.generating_question = False  # Flag to indicate generation is in progress
+        self.question_sprite = None
         
         # Quest
         self.quest = None
@@ -275,6 +276,7 @@ What is your response?
             correct_answer=correct_answer  
         )
         self.messages.append(f"generated a question: {question_text}, {options}, {correct_answer}, {hint}, {explanation}")
+        self.question_sprite = QuestionMarkSprite(self.pos, self.group)
         
         return "question generated successfully"
     
@@ -428,6 +430,8 @@ Try to make a new question
         self.animate(dt)
         
         if self.npc_attributes.get('role', '') == "Questioner" and getattr(self.question, "status", None) != "not attempted" and not self.timers['generate question'].active and not self.generating_question:
+            if self.question_sprite:
+                self.question_sprite.kill()
             self.timers['generate question'].activate()
             self.generating_question = True
 

@@ -7,7 +7,7 @@ from quest import TalkQuest, CollectQuest
 from level_system import LevelSystem
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification, get_npc_by_name):
         super().__init__(group)
 
         self.import_assets()
@@ -31,6 +31,7 @@ class Player(pygame.sprite.Sprite):
         
         # tool tip set up
         self.tooltip = ToolTipSprite(self, group)
+        self.secondary_tooltip = ToolTipSprite(self, group, level=1)
         
         # collision
         self.hitbox = self.rect.copy().inflate((-126,-70))
@@ -70,6 +71,7 @@ class Player(pygame.sprite.Sprite):
         self.is_shop_active = is_shop_active
         self.dialogue_menu = dialogue_menu
         self.add_notification = add_notification
+        self.get_npc_by_name = get_npc_by_name
         
         # Stats
         self.talked_to_npcs = {}    # NPCs the player has interacted with
@@ -203,7 +205,19 @@ class Player(pygame.sprite.Sprite):
                     else:
                         collided_interaction_sprites[0].func()
                     self.timers['interact'].activate()
-                    
+            
+            if keys[pygame.K_m] and not self.timers['interact'].active:
+                collided_interaction_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
+                if collided_interaction_sprites:
+                    if collided_interaction_sprites[0].prop['name'] == "NPC":
+                        npc_name = collided_interaction_sprites[0].prop['npc_name']
+                        if npc_name:
+                            npc = self.get_npc_by_name(npc_name)
+                            if getattr(npc.question, "status", None) == "not attempted":
+                                self.dialogue_menu.start_npc_chat(self, npc_name, question=True)
+                            elif npc.quest:
+                                self.dialogue_menu.start_npc_chat(self, npc_name, quest=True)
+                    self.timers['interact'].activate()
     
     def add_to_inventory(self, item_name, item_type, quantity=1):
         """
@@ -322,9 +336,23 @@ class Player(pygame.sprite.Sprite):
         collided_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
         if collided_sprites:
             self.tooltip.update_text(collided_sprites[0].tool_tip)
-            self.tooltip.show()  
+            self.tooltip.show()
+            
+            if collided_sprites[0].prop['name'] == "NPC":
+                npc_name = collided_sprites[0].prop['npc_name']
+                if npc_name:
+                    npc = self.get_npc_by_name(npc_name)
+                    if getattr(npc.question, "status", None) == "not attempted":
+                        self.secondary_tooltip.update_text('[M] Start question')
+                        self.secondary_tooltip.show()
+                    elif npc.quest:
+                        self.secondary_tooltip.update_text('[M] Start quest')
+                        self.secondary_tooltip.show()
+                    else:
+                        self.secondary_tooltip.hide()
         else:
-            self.tooltip.hide()  
+            self.tooltip.hide()
+            self.secondary_tooltip.hide()
 
     def update(self, dt):
         self.input()
