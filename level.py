@@ -156,6 +156,11 @@ class Level:
             if obj.type == 'Trader':
                 Generic((obj.x, obj.y), obj.image, self.all_sprites)
 
+        # Rock
+        for x, y, surf in tmx_data.get_layer_by_name('Rock').tiles():
+            Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
+            print((x,y))
+
         # # Ground Sprite (Floor)
         # Generic(
         #     pos = (0,0),

@@ -382,6 +382,7 @@ Phrase the question in first person perspective, using words like "I" or "me".
 Keep the hint to one sentence.
 Keep the explanation to not more than 70 words.
 Do not use bullet points or markdown annotations.
+Do not use objects for options.
 
 Here is the past conversation history: {{conversation_history}}    
 Try to make a new question

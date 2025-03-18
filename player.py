@@ -48,8 +48,8 @@ class Player(pygame.sprite.Sprite):
         # inventory
         self.inventory = [
             {"name": "hoe", "type": "tool", "quantity": 1},
-            {"name": "axe", "type": "tool", "quantity": 1},
-            {"name": "water", "type": "tool", "quantity": 1},
+            {"name": "axe", "type": "tool", "quantity": 0},
+            {"name": "water", "type": "tool", "quantity": 0},
             {"name": "corn", "type": "seed", "quantity": 5},
             {"name": "tomato", "type": "seed", "quantity": 5},
             {"name": "wood", "type": "resource", "quantity": 0},
@@ -83,7 +83,7 @@ class Player(pygame.sprite.Sprite):
         
         self.completed_questions = []
         
-        self.level_system = LevelSystem(add_notification=self.add_notification)
+        self.level_system = LevelSystem(self.add_notification, self, self.collision_sprites)
 
     def gain_experience(self, amount):
         """Wrapper to gain experience via the LevelSystem."""
@@ -175,6 +175,8 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_SPACE] and not self.timers['tool use'].active:
                 type = self.selected_item['type']
                 if type == 'tool':
+                    if self.selected_item['quantity'] <= 0:
+                        return
                     self.timers['tool use'].activate()
                     self.direction = pygame.math.Vector2() # stop player from moving during tool use
                     self.frame_index = 0                   # play new animation
