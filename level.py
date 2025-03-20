@@ -42,6 +42,7 @@ class Level:
 
         self.soil_layer = SoilLayer(self.all_sprites)
         self.location = Location_Manager()
+        self.guide_active = False
         self.setup()
         self.overlay = Overlay(self.player)
         self.transition = Transition(self.reset, self.player)
@@ -50,6 +51,7 @@ class Level:
         # shop
         self.menu = Menu(self.player, self.toggle_shop)
         self.shop_active = False
+
         
         # audio
         self.success_sound = pygame.mixer.Sound('./audio/success.wav')
@@ -101,6 +103,9 @@ class Level:
             
             if obj.name == 'Trader':
                 Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Trade with Merchant')
+            
+            if obj.name == 'Guide':
+                Interaction((obj.x,obj.y), (obj.width,obj.height), self.interaction_sprites, {"name": obj.name}, '[N] Open Guide', self.toggle_guide)
         
         # house 
         for layer in ['HouseFloor', 'HouseFurnitureBottom']:
@@ -168,6 +173,9 @@ class Level:
     def toggle_shop(self):
         self.shop_active = not self.shop_active
 
+    def toggle_guide(self):
+        self.guide_active = not self.guide_active
+
     def is_shop_active(self):
         return self.shop_active
 
@@ -214,6 +222,9 @@ class Level:
         # updates
         if self.shop_active:
             self.menu.update()
+        
+        if self.guide_active:
+            self.overlay.draw_guide()
         
         if self.dialogue.is_active():
             self.dialogue.update(events)

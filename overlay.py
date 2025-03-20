@@ -100,6 +100,50 @@ class Overlay:
             if i == self.player.inventory_index:
                 pygame.draw.rect(self.display_surface, HIGHLIGHT_COLOR, (x, INVENTORY_Y, SLOT_SIZE, SLOT_SIZE), 3)
     
+    def draw_guide(self):
+        background_image = pygame.image.load('./graphics/objects/old_paper.png').convert_alpha()
+        
+        # Background box dimensions
+        box_width = 1400
+        box_x = (SCREEN_WIDTH - box_width) // 2
+        box_height = 700
+        box_y = 10
+        
+        # Draw background
+        background_image = pygame.transform.scale(background_image, (box_width, box_height))
+        self.display_surface.blit(background_image, (box_x, box_y))
+        
+        # Can move to settings for dynamic key binding
+        key_bindings = {
+            "Arrow Keys": "Move Character",
+            "Q": "Shift Selected Item Left",
+            "W": "Shift Selected Item Right",
+            "Space": "Use Item",
+            "N": "Interact",
+            "M": "Start Question"
+        }
+        
+        y_offset = box_y + 220
+        x_offset = box_x + 440
+        
+        self.create_text("Welcome to Math Harvest, where wisdom is your", x_offset, y_offset)
+        y_offset += 35
+        self.create_text("greatest tool, and numbers guide your journey!", x_offset, y_offset)
+        y_offset += 60
+
+        for key, action in key_bindings.items():
+            self.create_text(f"{key}: {action}", x_offset, y_offset, size="small")
+            y_offset += 25  # Space between lines
+    
+    def create_text(self, text, x , y, size="medium"):
+        if size == "small":
+            text_surface = self.small_font.render(text, True, BLACK)
+        elif size == "medium":
+            text_surface = self.medium_font.render(text, True, BLACK)
+        else:
+            text_surface = self.large_font.render(text, True, BLACK)
+        self.display_surface.blit(text_surface, (x, y))
+    
     def update(self):
         self.draw_inventory()
         self.draw_level()

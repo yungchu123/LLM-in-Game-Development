@@ -7,7 +7,7 @@ class Game:
         # Initialize pygame and set up the screen
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Stardew Valley Clone")
+        pygame.display.set_caption("Math Harvest")
         self.clock = pygame.time.Clock()
         self.level = Level()
 
