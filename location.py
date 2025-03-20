@@ -1,6 +1,6 @@
 from shapely.geometry import Point, Polygon
 from pytmx.util_pygame import load_pygame
-import json
+import json, configparser
 from settings import *
 
 """"
@@ -33,8 +33,8 @@ class Location_Manager:
             print(location.name, location.polygon, location.description, location.topic)
     
     def set_up(self):
-        with open("locations.json", "r") as file:
-            location_data = json.load(file)
+        topics = self.load_topics()
+        location_data = self.load_and_replace_json("locations.json", topics)
         
         tmx_data = load_pygame('./data/map.tmx')
         
@@ -66,4 +66,19 @@ class Location_Manager:
         for location in self.locations.values():
             res.append([location.name, location.polygon])
         return res
-        
+    
+    def load_topics(self, filename="config.ini"):
+        config = configparser.ConfigParser()
+        config.read(filename)
+        return dict(config["Topics"]) if "Topics" in config else {}
+    
+    def load_and_replace_json(self, json_file, topics):
+        with open(json_file, "r") as file:
+            data = json.load(file)
+
+        # Replace placeholders dynamically
+        for location, details in data.items():
+            if "topic" in details and details["topic"].lower() in topics:
+                data[location]["topic"] = topics[details["topic"].lower()]
+
+        return data

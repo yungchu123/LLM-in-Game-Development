@@ -8,7 +8,7 @@ from question import Question
 from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE, QUESTIONER_ROLE_TEMPLATE
 from pytmx.util_pygame import load_pygame
 from pathfinding import find_path
-import json
+import json, configparser
 
 from langchain.prompts import PromptTemplate
 from langchain.tools.base import StructuredTool
@@ -266,12 +266,13 @@ What is your response?
             hint: A hint to help the player.
             explanation: Step-by-step explanation of the answer.
         """
+        topic = self.get_location(self.pos).topic
         print('------------------------------------------------------------------------------------------')
-        print(f"Qn: {question_text}\nOptions: {options}\nAns: {correct_answer}\nHint: {hint}\nExplanation: {explanation}")
+        print(f"Qn: {question_text}\nOptions: {options}\nAns: {correct_answer}\nTopic: {topic}\nHint: {hint}\nExplanation: {explanation}")
         print('------------------------------------------------------------------------------------------')
         self.question = Question(
             question_text=question_text,
-            topic=self.get_location(self.pos).topic,
+            topic=topic,
             hint=hint,
             explanation=explanation,
             options=options,
@@ -342,6 +343,12 @@ What is your response?
         # Update Interaction Sprite around him
         self.interaction_sprite.rect.topleft = (self.rect.x, self.rect.y)
     
+    def load_learning(self, filename="config.ini"):
+        config = configparser.ConfigParser()
+        config.read(filename)
+        self.enable_context = config.getboolean("Learning", "ENABLE_CONTEXT")
+        return dict(config["Learning"]) if "Learning" in config else {}
+    
     def npc_setup(self):      
         llm = ChatOpenAI(model="gpt-4o-mini")
         
@@ -357,11 +364,23 @@ What is your response?
         self.agent = create_react_agent(llm_with_tools, tools=tools)
     
     def get_system_message(self):
+        learning = self.load_learning()
         role = self.npc_attributes.get('role', '')  # Safe access
+        
         if role == "Assistant":
-            return ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
+            with open("locations.json", "r") as file:  # Change filename if necessary
+                locations = json.load(file)
+
+            # Filter and format locations (ignoring empty descriptions)
+            location_info = "\n".join(
+                f"{i + 1}. {data['name']} - {data['description']}." +
+                (f" (Unlocked at level {data['level_unlock']})" if "level_unlock" in data else "")
+                for i, (_, data) in enumerate(locations.items()) if data["description"]
+            )
+            print(ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, location_info=location_info))
+            return ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, location_info=location_info)
         elif role == "Questioner":
-            return QUESTIONER_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
+            return QUESTIONER_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, subject=learning['subject'], target_audience=learning['target_audience'])
         else:
             return CONVERSATIONAL_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes)
     
@@ -369,29 +388,34 @@ What is your response?
         print("Generating a question ...")
         
         location = self.get_location(self.pos)
-        print(location.name, location.topic)
+        
+        context_instruction = ""
+        if self.enable_context:
+            context_instruction = f"""
+Make context specific question
+- Location: {location.name}
+- Occuputation: {self.npc_attributes['occupation']}
+- Phrase the question in first person perspective, using words like 'I' or 'me'.
+            """
         
         prompt_template = PromptTemplate(
             input_variables=["query"],
             template=f"""
 Generate a new question with a topic on {location.topic}
 
-Make context specific question
-- Location: {location.name}
-- Occuputation: {self.npc_attributes['occupation']}
+{{context_instruction}}
 
-Phrase the question in first person perspective, using words like "I" or "me".
 Keep the hint to one sentence.
 Keep the explanation to not more than 70 words.
+For each options, use only strings (NO objects) and keep the length of string up to 24
 Do not use bullet points or markdown annotations.
-Do not use objects for options.
 
 Here is the past conversation history: {{conversation_history}}    
 Try to make a new question
             """)
         
-        formatted_query = prompt_template.format(conversation_history = self.messages)
-        
+        formatted_query = prompt_template.format(conversation_history = self.messages, context_instruction=context_instruction)
+ 
         def execute_llm():
             result = self.agent.invoke(
                 {"messages": formatted_query},

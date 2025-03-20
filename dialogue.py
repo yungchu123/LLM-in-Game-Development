@@ -139,14 +139,21 @@ class Dialogue_Menu:
     def draw_question_options(self):
         # Define button properties
         num_buttons = len(self.npc.question.options)  # Get number of options
-        button_width = self.BOX_WIDTH // num_buttons  # Divide available space
-        button_height = self.BOX_HEIGHT
+        num_columns = 2  # Two options per row
+        num_rows = 2  # Two rows
+        
+        button_width = self.BOX_WIDTH // num_columns # Divide available space
+        button_height = (SCREEN_HEIGHT-self.BOX_Y) // num_rows
         button_y = self.BOX_Y
         
         self.button_rects = []  # Store button rects for event handling
         
         for i, option in enumerate(self.npc.question.options):
-            button_x = self.BOX_X + i * button_width    
+            row = i // num_columns  
+            col = i % num_columns
+            
+            button_x = self.BOX_X + col * button_width  # Position based on column
+            button_y = self.BOX_Y + row * button_height  
             
             btn_color = GREY
             
@@ -155,9 +162,8 @@ class Dialogue_Menu:
                 btn_color = GREEN if self.npc.question.status == "correct" else RED
             
             # hide options if player unlock fifty fifty
-            if self.npc.question.fifty_fifty_unlocked:
-                if i in self.npc.question.removed_options:
-                    option = ""
+            if self.npc.question.fifty_fifty_unlocked and i in self.npc.question.removed_options:
+                option = ""
             
             button_rect = self.draw_button(
                 x=button_x, 

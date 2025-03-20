@@ -1,26 +1,33 @@
 {
     "Maplewood Village": {
-        "description": "the central hub of Pydew, where players can interact with villagers, trade goods, and take on quests.",
-        "topic": ""
-    },
-    "Whispering Woods": {
-        "description": "a dense and mythical forest home to apple trees",
-        "topic": "Algebra and Equations"
+        "name": "Maplewood Village",
+        "description": "The central hub of Pydew, where players can interact with villagers, trade goods, and take on quests"
     },
     "Golden Meadow": {
-        "description": "a land rich with fertile land for players to grow crops",
-        "topic": "Arithmetic and Ratios"
+        "name": "Golden Meadow",
+        "description": "A land rich with fertile land for players to grow crops",
+        "topic": "TOPIC_1"
     },
     "Waterworks": {
-        "description": "a village's water system that manages water pipes and irrigations",
-        "topic": "Fractions and Percentages"
+        "name": "Waterworks",
+        "description": "A village's water system that manages water pipes and irrigations",
+        "topic": "TOPIC_2",
+        "level_unlock": 3
+    },
+    "Whispering Woods": {
+        "name": "Whispering Woods",
+        "description": "A dense and mythical forest home to apple trees",
+        "topic": "TOPIC_3",
+        "level_unlock": 5
     },
     "Guild House": {
-        "description": "",
-        "topic": ""
+        "name": "Guild House",
+        "description": "A place to chill",
+        "level_unlock": 2
     },
     "Shop House": {
-        "description": "",
-        "topic": ""
+        "name": "Shop House",
+        "description": "A place to buy and sell items",
+        "level_unlock": 4
     }
 }
