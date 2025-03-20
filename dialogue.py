@@ -219,6 +219,18 @@ class Dialogue_Menu:
         money_text = self.font.render(f'Money: {self.player.money}', True, BLACK)
         self.display_surface.blit(money_text, (CHATBOX_MARGIN, SCREEN_HEIGHT - CHATBOX_HEIGHT - CHATBOX_MARGIN - INPUT_BOX_HEIGHT - 110))
     
+    def draw_info_box(self):
+        self.draw_button(
+            x=30,
+            y=30, 
+            width=180, 
+            height=60,
+            text="[ESC] Exit", 
+            border_radius=10, 
+            background_color=(200, 200, 200), 
+            border_color=(200, 200, 200), 
+            text_color=(120, 120, 120))
+    
     def draw_button(self, x, y, width, height, text, border_radius, background_color, border_color, text_color):
         button_rect = pygame.Rect(x, y, width, height)
         pygame.draw.rect(self.display_surface, background_color, button_rect, border_radius=border_radius)
@@ -400,6 +412,7 @@ class Dialogue_Menu:
     
     def update(self, events):
         self.input(events)
+        self.draw_info_box()
         if self.question_active and self.npc_has_question():
             self.draw_question_options()
         elif self.quest_active and self.npc_has_quest():

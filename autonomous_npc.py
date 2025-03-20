@@ -377,7 +377,6 @@ What is your response?
                 (f" (Unlocked at level {data['level_unlock']})" if "level_unlock" in data else "")
                 for i, (_, data) in enumerate(locations.items()) if data["description"]
             )
-            print(ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, location_info=location_info))
             return ASSISTANT_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, location_info=location_info)
         elif role == "Questioner":
             return QUESTIONER_ROLE_TEMPLATE.format(npc_attributes=self.npc_attributes, subject=learning['subject'], target_audience=learning['target_audience'])
