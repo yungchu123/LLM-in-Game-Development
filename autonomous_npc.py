@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from support import *
 from timer import Timer
-from sprites import Generic, TextSprite, Interaction, QuestStatusSprite, QuestionMarkSprite
+from sprites import TextSprite, Interaction, QuestStatusSprite, QuestionMarkSprite
 from quest import TalkQuest, CollectQuest, QuestStatus
 from question import Question
 from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE, QUESTIONER_ROLE_TEMPLATE
@@ -266,7 +266,9 @@ What is your response?
             hint: A hint to help the player.
             explanation: Step-by-step explanation of the answer.
         """
-        print(f"generated a question: {question_text}, {options}, {correct_answer}, {hint}, {explanation}")
+        print('------------------------------------------------------------------------------------------')
+        print(f"Qn: {question_text}\nOptions: {options}\nAns: {correct_answer}\nHint: {hint}\nExplanation: {explanation}")
+        print('------------------------------------------------------------------------------------------')
         self.question = Question(
             question_text=question_text,
             topic=self.get_location(self.pos).topic,

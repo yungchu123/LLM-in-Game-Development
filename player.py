@@ -220,6 +220,10 @@ class Player(pygame.sprite.Sprite):
                             elif npc.quest:
                                 self.dialogue_menu.start_npc_chat(self, npc_name, quest=True)
                     self.timers['interact'].activate()
+            
+            if keys[pygame.K_f] and not self.timers['interact'].active:
+                self.level_system.gain_experience(10)
+                self.timers['interact'].activate()
     
     def add_to_inventory(self, item_name, item_type, quantity=1):
         """

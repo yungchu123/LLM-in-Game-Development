@@ -49,3 +49,5 @@ assets/**/*.bak
 # Build artifacts
 build/
 dist/
+main.exe
+main.spec

@@ -11,7 +11,6 @@ from soil import SoilLayer
 from sky import Rain, Sky
 from menu import Menu
 from dialogue import Dialogue_Menu
-from conversational_llm import ConversationalLLM
 from autonomous_npc import NPC_Manager
 from timer import Timer
 from grid import Grid
@@ -79,7 +78,6 @@ class Level:
                                 get_location = self.location.get_location)
         
         # dialogue
-        self.conversational_llm = ConversationalLLM()
         self.dialogue = Dialogue_Menu(get_npc_by_name = self.npc_manager.get_npc_by_name)
         
         # Player
@@ -159,7 +157,6 @@ class Level:
         # Rock
         for x, y, surf in tmx_data.get_layer_by_name('Rock').tiles():
             Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
-            print((x,y))
 
         # # Ground Sprite (Floor)
         # Generic(
@@ -236,7 +233,7 @@ class Level:
             self.soil_layer.water_all()
         
         # day to night transition
-        self.sky.display(dt)
+        # self.sky.display(dt)
         
         # player sleep transition
         if self.player.sleep:

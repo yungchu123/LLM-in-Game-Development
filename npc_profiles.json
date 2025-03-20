@@ -3,52 +3,52 @@
         "name": "Alice",
         "role": "Quest",
         "gender": "Female",
-        "likes": ["apple", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+        "likes": ["blueberries", "clear night skies", "reading"],
+        "dislikes": ["rain", "loud noises", "spicy food"],
+        "conversation": "Alice speaks softly but with a spark of curiosity, always eager to hear new tales and share legends of old."
     },
     "Bob": {
         "name": "Bob",
         "role": "Quest",
         "gender": "Male",
-        "likes": ["tomato", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge"
+        "likes": ["fresh bread", "morning dew", "fishing"],
+        "dislikes": ["waiting", "cold weather"],
+        "conversation": "Bob is a cheerful storyteller, often reminiscing about past adventures and sharing useful farming tips."
     },
     "Eldric Thornbrook": {
         "name": "Eldric Thornbrook",
         "role": "Assistant",
         "gender": "Male",
-        "likes": ["carrot", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "likes": ["tea", "philosophy", "sunsets"],
+        "dislikes": ["recklessness", "untidy places"],
+        "conversation": "Eldric speaks with wisdom and authority, always encouraging young villagers to be patient and plan for the future.",
         "occupation": "Village chief"
     },
     "Logan Woodsman": {
         "name": "Logan Woodsman",
         "role": "Questioner",
         "gender": "Male",
-        "likes": ["carrot", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "likes": ["oak trees", "campfires", "axe sharpening"],
+        "dislikes": ["deforestation", "city life"],
+        "conversation": "Logan speaks in a deep, rugged voice, often sharing survival tips and warning against over-harvesting nature's resources.",
         "occupation": "Wood chopper"
-    }, 
+    },
     "Brooks Clearwater": {
         "name": "Brooks Clearwater",
         "role": "Questioner",
         "gender": "Male",
-        "likes": ["carrot", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "likes": ["freshwater fish", "rain", "engineering puzzles"],
+        "dislikes": ["wastefulness", "pollution"],
+        "conversation": "Brooks is always brimming with energy, excitedly talking about water flow, irrigation mechanics, and how every drop counts.",
         "occupation": "Plumber"
     },
     "Eli Sunfield": {
         "name": "Eli Sunfield",
         "role": "Questioner",
         "gender": "Male",
-        "likes": ["carrot", "sunny days"],
-        "dislikes": ["corn", "rainy days"],
-        "conversation": "Speaks with patience and wisdom, often sharing ancient knowledge",
+        "likes": ["golden wheat fields", "sunflowers", "homemade pie"],
+        "dislikes": ["pests", "droughts"],
+        "conversation": "Eli speaks in a warm, friendly tone, often reflecting on the hard work of farmers and the beauty of a well-tended field.",
         "occupation": "Farmer"
     }
 }

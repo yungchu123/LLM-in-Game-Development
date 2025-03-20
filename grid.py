@@ -15,7 +15,6 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import START, StateGraph
 from langgraph.prebuilt import tools_condition
 from langgraph.prebuilt import ToolNode
-from IPython.display import Image, display
 
 from langgraph.checkpoint.memory import MemorySaver
 
