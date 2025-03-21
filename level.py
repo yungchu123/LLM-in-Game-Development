@@ -91,6 +91,7 @@ class Level:
                     collision_sprites = self.collision_sprites,
                     tree_sprites = self.tree_sprites,
                     interaction_sprites = self.interaction_sprites,
+                    location_sprites = self.location_sprites,
                     soil_layer = self.soil_layer,
                     toggle_shop = self.toggle_shop,
                     is_shop_active = self.is_shop_active,
@@ -161,7 +162,8 @@ class Level:
 
         # Rock
         for x, y, surf in tmx_data.get_layer_by_name('Rock').tiles():
-            Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
+            Generic((x * TILE_SIZE, y * TILE_SIZE), surf, [self.all_sprites, self.location_sprites, self.collision_sprites])
+            Interaction((x * TILE_SIZE, y * TILE_SIZE), (TILE_SIZE, TILE_SIZE), [self.location_sprites, self.interaction_sprites], {"name": "Location"}, "Area Locked")
 
         # # Ground Sprite (Floor)
         # Generic(

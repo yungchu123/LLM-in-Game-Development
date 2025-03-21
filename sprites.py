@@ -146,12 +146,13 @@ class TextSprite(pygame.sprite.Sprite):
         self.rect.center = (self.pos.x, self.pos.y - 40)
 
 class ToolTipSprite(pygame.sprite.Sprite):
-    def __init__(self, player, groups, text="Press N to interact", level=0):
+    def __init__(self, player, groups, text="Press N to interact", level=0, color=GREEN):
         super().__init__(groups)
         self.player = player
         self.text = text
         self.level = level
         self.z = LAYERS['tool tip']
+        self.color = color
         self.font = pygame.font.Font(None, 24)  # Default pygame font, size 24
         self.image = self.font.render(self.text, True, (255, 255, 255))  # White text
         self.rect = self.image.get_rect(topright=(self.player.rect.left + 50, self.player.rect.top + 20 + self.level * 40))  # Position top left abover player
@@ -167,11 +168,14 @@ class ToolTipSprite(pygame.sprite.Sprite):
     def update_text(self, text):
         self.text = text
 
+    def update_color(self, color):
+        self.color = color
+
     def show(self):
         """Show the tooltip."""
         text_surface = self.font.render(self.text, True, (255, 255, 255))
         self.image = pygame.Surface((text_surface.get_width() + 15, text_surface.get_height() + 15))
-        self.image.fill(GREEN)  # Background Color
+        self.image.fill(self.color)  # Background Color
         text_rect = text_surface.get_rect(center=(self.image.get_width() // 2, self.image.get_height() // 2))
         self.image.blit(text_surface, text_rect.topleft) # Center text inside box
         self.visible = True

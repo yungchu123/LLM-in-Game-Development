@@ -7,7 +7,7 @@ from quest import TalkQuest, CollectQuest
 from level_system import LevelSystem
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification, get_npc_by_name):
+    def __init__(self, pos, group, collision_sprites, tree_sprites, interaction_sprites, location_sprites, soil_layer, toggle_shop, is_shop_active, dialogue_menu, add_notification, get_npc_by_name):
         super().__init__(group)
 
         self.import_assets()
@@ -65,6 +65,7 @@ class Player(pygame.sprite.Sprite):
         # interaction
         self.tree_sprites = tree_sprites
         self.interaction_sprites = interaction_sprites
+        self.location_sprites = location_sprites
         self.sleep = False
         self.soil_layer = soil_layer
         self.toggle_shop = toggle_shop
@@ -83,7 +84,7 @@ class Player(pygame.sprite.Sprite):
         
         self.completed_questions = []
         
-        self.level_system = LevelSystem(self.add_notification, self, self.collision_sprites)
+        self.level_system = LevelSystem(self.add_notification, self, self.location_sprites)
 
     def gain_experience(self, amount):
         """Wrapper to gain experience via the LevelSystem."""
@@ -341,6 +342,11 @@ class Player(pygame.sprite.Sprite):
         # Check for collision with interaction sprites. If yes, display tool tip
         collided_sprites = [s for s in self.interaction_sprites if self.hitbox.colliderect(s.rect)]
         if collided_sprites:
+            if collided_sprites[0].prop['name'] == "Location":
+                self.tooltip.update_color(RED)
+            else:
+                self.tooltip.update_color(GREEN)
+            
             self.tooltip.update_text(collided_sprites[0].tool_tip)
             self.tooltip.show()
             

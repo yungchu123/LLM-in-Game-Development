@@ -1,12 +1,12 @@
 from settings import *
 
 class LevelSystem:
-    def __init__(self, add_notification, player, collision_sprites, level=1, experience=0):
+    def __init__(self, add_notification, player, location_sprites, level=1, experience=0):
         self.level = level
         self.experience = experience
         self.add_notification = add_notification
         self.player = player
-        self.collision_sprites = collision_sprites
+        self.location_sprites = location_sprites
 
     def get_level(self):
         return self.level
@@ -59,7 +59,7 @@ class LevelSystem:
             "Shop House": [(40, 36), (41, 36)]
         }
         
-        for sprite in self.collision_sprites:
+        for sprite in self.location_sprites:
             x, y = sprite.rect.topleft
             pos = (x / TILE_SIZE, y / TILE_SIZE)
             if pos in areas[area]:
