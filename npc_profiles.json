@@ -5,7 +5,8 @@
         "gender": "Female",
         "likes": ["blueberries", "clear night skies", "reading"],
         "dislikes": ["rain", "loud noises", "spicy food"],
-        "conversation": "Alice speaks softly but with a spark of curiosity, always eager to hear new tales and share legends of old."
+        "conversation": "Alice speaks softly but with a spark of curiosity, always eager to hear new tales and share legends of old.",
+        "voice": "shimmer"
     },
     "Bob": {
         "name": "Bob",
@@ -13,7 +14,8 @@
         "gender": "Male",
         "likes": ["fresh bread", "morning dew", "fishing"],
         "dislikes": ["waiting", "cold weather"],
-        "conversation": "Bob is a cheerful storyteller, often reminiscing about past adventures and sharing useful farming tips."
+        "conversation": "Bob is a cheerful storyteller, often reminiscing about past adventures and sharing useful farming tips.",
+        "voice": "nova"
     },
     "Eldric Thornbrook": {
         "name": "Eldric Thornbrook",
@@ -22,7 +24,8 @@
         "likes": ["tea", "philosophy", "sunsets"],
         "dislikes": ["recklessness", "untidy places"],
         "conversation": "Eldric speaks with wisdom and authority, always encouraging young villagers to be patient and plan for the future.",
-        "occupation": "Village chief"
+        "occupation": "Village chief",
+        "voice": "sage"
     },
     "Logan Woodsman": {
         "name": "Logan Woodsman",
@@ -31,7 +34,8 @@
         "likes": ["oak trees", "campfires", "axe sharpening"],
         "dislikes": ["deforestation", "city life"],
         "conversation": "Logan speaks in a deep, rugged voice, often sharing survival tips and warning against over-harvesting nature's resources.",
-        "occupation": "Wood chopper"
+        "occupation": "Wood chopper",
+        "voice": "onyx"
     },
     "Brooks Clearwater": {
         "name": "Brooks Clearwater",
@@ -40,7 +44,8 @@
         "likes": ["freshwater fish", "rain", "engineering puzzles"],
         "dislikes": ["wastefulness", "pollution"],
         "conversation": "Brooks is always brimming with energy, excitedly talking about water flow, irrigation mechanics, and how every drop counts.",
-        "occupation": "Plumber"
+        "occupation": "Plumber",
+        "voice": "fable"
     },
     "Eli Sunfield": {
         "name": "Eli Sunfield",
@@ -49,6 +54,7 @@
         "likes": ["golden wheat fields", "sunflowers", "homemade pie"],
         "dislikes": ["pests", "droughts"],
         "conversation": "Eli speaks in a warm, friendly tone, often reflecting on the hard work of farmers and the beauty of a well-tended field.",
-        "occupation": "Farmer"
+        "occupation": "Farmer",
+        "voice": "coral"
     }
 }

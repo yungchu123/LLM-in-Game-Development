@@ -32,6 +32,7 @@ assets/**/*.bak
 *.egg-info/
 *.cache/
 *.tmp
+*.mp3
 
 # Generated files
 *.pyd

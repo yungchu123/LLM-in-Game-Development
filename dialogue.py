@@ -4,6 +4,11 @@ import re, threading
 from quest import QuestStatus
 from settings import *
 
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
+from openai import OpenAI
+
 class Dialogue_Menu:
     def __init__(self, get_npc_by_name):
         
@@ -32,6 +37,11 @@ class Dialogue_Menu:
         
         self.quest_active = False
         self.question_active = False
+        
+        # Audio Generation
+        self.client = OpenAI()
+        self.text_sound = None
+        self.text_channel = None
         
     def draw_chatbox(self):
         """Draw the NPC chatbox and the conversation."""
@@ -138,7 +148,6 @@ class Dialogue_Menu:
     
     def draw_question_options(self):
         # Define button properties
-        num_buttons = len(self.npc.question.options)  # Get number of options
         num_columns = 2  # Two options per row
         num_rows = 2  # Two rows
         
@@ -243,6 +252,34 @@ class Dialogue_Menu:
         
         return button_rect
 
+    def update_message(self, message):
+        self.message = message
+        
+        if message == "":
+            return
+        
+        self.generate_audio('npc_dialogue.mp3', message)
+        self.play_audio('npc_dialogue.mp3')
+
+    def generate_audio(self, filename, message): 
+        response = self.client.audio.speech.create(
+            model="gpt-4o-mini-tts",
+            voice=self.npc.npc_attributes['voice'],
+            input=message
+        )
+
+        response.stream_to_file(filename)
+
+    def play_audio(self, filename):
+        # Stop existing audio from playing
+        self.stop_audio()
+        self.text_sound = pygame.mixer.Sound(filename)
+        self.text_channel = self.text_sound.play()
+    
+    def stop_audio(self):
+        if self.text_channel and self.text_channel.get_busy():
+            self.text_channel.stop()
+
     def input(self, events):
         for event in events:
             # Exit dialogue menu
@@ -270,9 +307,9 @@ class Dialogue_Menu:
                             if i in self.npc.question.removed_options:
                                 return
                         if self.npc.question.check_answer(i, self.player):
-                            self.message = f"Correct! {self.npc.question.explanation}"
+                            self.update_message(f"Correct! {self.npc.question.explanation}")
                         else:
-                            self.message = f"Incorrect. {self.npc.question.explanation}"
+                            self.update_message(f"Incorrect. {self.npc.question.explanation}")
                 if self.hint_button_rect.collidepoint(event.pos):
                     self.npc.question.get_hint(self.player)
                 elif self.fifty_fifty_button_rect.collidepoint(event.pos):
@@ -376,7 +413,8 @@ class Dialogue_Menu:
         # Check if have quest
         if question and self.npc_has_question():
             self.question_active = True
-            self.message = self.npc.question.question_text
+            # self.message = self.npc.question.question_text
+            self.update_message(self.npc.question.question_text)
             self.option_colors = [GREY, GREY, GREY, GREY]
         elif quest and self.npc_has_quest():
             self.quest_active = True
@@ -391,6 +429,7 @@ class Dialogue_Menu:
         self.reset_input()
         self.can_open_chat = False
         threading.Timer(0.1, self.enable_chat).start()
+        self.stop_audio()
     
     def enable_chat(self):
         """Re-enables NPC chat after delay."""
@@ -424,7 +463,8 @@ class Dialogue_Menu:
             elif self.npc.quest.status == QuestStatus.COMPLETED:
                 self.draw_claim_reward_box()
         else:
-            self.message = self.npc.dialogue_message    # display dialogue message
+            if self.message != self.npc.dialogue_message:
+                self.update_message(self.npc.dialogue_message)    # display dialogue message
             self.draw_input_box()
             
         if self.message:
