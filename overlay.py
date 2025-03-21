@@ -61,9 +61,44 @@ class Overlay:
         self.display_surface.blit(text_surf, text_rect)
     
     def draw_player_location(self):
-        text_surf = self.medium_font.render(f"Location: {self.player.location}", True, BLACK)
-        text_rect = text_surf.get_rect(topleft=(40, SCREEN_HEIGHT-60))
-        self.display_surface.blit(text_surf, text_rect)
+        # Background box dimensions
+        margin = 20
+        box_width = 300
+        box_height = 100
+        box_x = SCREEN_WIDTH - box_width - margin
+        box_y = SCREEN_HEIGHT - box_height - margin
+        
+        location_name = getattr(self.player.location, "name", None)
+        location_topic = getattr(self.player.location, "topic", None)
+        
+        background_image = pygame.image.load('./graphics/objects/banner.png').convert_alpha()
+        background_image = pygame.transform.scale(background_image, (box_width, box_height))
+        background_rect = background_image.get_rect(topleft=(box_x, box_y))
+        self.display_surface.blit(background_image, background_rect)
+        
+        if location_topic:
+            name_surf = self.medium_font.render(location_name, True, WHITE)
+            topic_surf = self.small_font.render(f"({location_topic})", True, WHITE)
+            
+            name_rect = name_surf.get_rect(midtop=(background_rect.centerx, background_rect.top + 20))
+            topic_rect = topic_surf.get_rect(midtop=(background_rect.centerx, name_rect.bottom + 20))
+            
+            self.display_surface.blit(topic_surf, topic_rect)
+            
+            # Draw line in between name and topic
+            line_y = name_rect.bottom + 10  
+            line_start = (background_rect.left + 20, line_y)
+            line_end = (background_rect.right - 20, line_y)
+            pygame.draw.line(self.display_surface, WHITE, line_start, line_end, width=2)
+        else:
+            name_surf = self.medium_font.render(location_name, True, WHITE)
+            name_rect = name_surf.get_rect(center=background_rect.center)
+        
+        self.display_surface.blit(name_surf, name_rect)
+        
+        
+        
+
     
     def draw_inventory(self):
         inventory_width = (SLOT_SIZE + SLOT_MARGIN) * NUM_SLOTS - SLOT_MARGIN

@@ -66,13 +66,13 @@
 </data>
  </layer>
  <objectgroup id="34" name="Location">
-  <object id="373" name="Maplewood Village" type="Location" x="816.485" y="1790" width="2050.79" height="824"/>
+  <object id="373" name="Maplewood Village" type="Location" x="816.485" y="1714" width="2050.79" height="900"/>
   <object id="374" name="Maplewood Village" type="Location" x="896" y="1860" width="504" height="500"/>
   <object id="383" name="Maplewood Village" type="Location" x="1976" y="1854" width="380" height="516"/>
   <object id="382" name="Maplewood Village" type="Location" x="1474" y="1854" width="450" height="518"/>
   <object id="390" name="Maplewood Village" type="Location" x="2426" y="1854" width="380" height="516"/>
   <object id="375" name="Your Room" type="Location" x="978" y="2030" width="344" height="258"/>
-  <object id="377" name="Whispering Woods" type="Location" x="1409.03" y="1146.79" width="630" height="478"/>
+  <object id="377" name="Whispering Woods" type="Location" x="1409.03" y="1146.79" width="630" height="504"/>
   <object id="378" name="Guild House" type="Location" x="1558" y="2160" width="280" height="128"/>
   <object id="379" name="Shop House" type="Location" x="2520" y="2124" width="222" height="162"/>
   <object id="389" name="Golden Meadow" type="Location" x="674" y="1188" width="532" height="458"/>

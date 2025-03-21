@@ -52,7 +52,7 @@ class Location_Manager:
         for location in self.locations.values():
             if location.check_pos(player_pos):
                 # Update player current location
-                player.location = location.name
+                player.location = location
                 return
     
     def get_location(self, pos):
