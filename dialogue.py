@@ -66,6 +66,13 @@ class Dialogue_Menu:
                 npc_surface = self.font.render(line, True, WHITE)
                 self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, y_offset))
                 y_offset += self.font.get_height() + 5  # Space between lines
+                
+            # Display quest rewards if have quest
+            if self.quest_active and self.npc_has_quest():
+                rewards = self.npc.quest.rewards
+                rewards_str = ", ".join(f"{k}: {v}" for reward in rewards for k, v in reward.items())
+                npc_surface = self.font.render(f"Rewards: {rewards_str}", True, YELLOW)
+                self.display_surface.blit(npc_surface, (chatbox_rect.x + 20, y_offset))
 
     def draw_input_box(self):
         """Draw the player input box."""
