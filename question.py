@@ -49,7 +49,7 @@ class Question:
         if self.status != "not attempted": 
             return
         player.add_money(20)
-        player.gain_experience(5)
+        player.gain_experience(15)
         self.status = "correct"
         player.completed_questions.append(self)
         print([str(q) for q in player.completed_questions])
