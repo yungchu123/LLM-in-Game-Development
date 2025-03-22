@@ -10,12 +10,13 @@ Two main requirements
 """
 
 class Location:
-    def __init__(self, name, tile_positions, description, topic):
+    def __init__(self, name, tile_positions, description, topic, level_unlock):
         self.name = name
         self.tile_positions = tile_positions
         self.polygon = Polygon(self.tile_positions)
         self.description = description
         self.topic = topic
+        self.level_unlock = level_unlock
         
     def add_tile_positions(self, tile_positions):
         self.tile_positions += tile_positions
@@ -43,7 +44,8 @@ class Location_Manager:
                 data = location_data.get(obj.name, {})  # safe access
                 description = data.get("description", "")
                 topic = data.get("topic", "")
-                self.locations[obj.name] = Location(obj.name, [(p.x, p.y) for p in obj.as_points], description, topic)
+                level_unlock = data.get("level_unlock", 1)
+                self.locations[obj.name] = Location(obj.name, [(p.x, p.y) for p in obj.as_points], description, topic, level_unlock)
             else:
                 self.locations[obj.name].add_tile_positions([(p.x, p.y) for p in obj.as_points])  
     
@@ -65,6 +67,13 @@ class Location_Manager:
         res = []
         for location in self.locations.values():
             res.append([location.name, location.polygon])
+        return res
+    
+    def get_locations_with_topic(self):
+        res = []
+        for location in self.locations.values():
+            if hasattr(location, 'topic') and location.topic:
+                res.append(location)
         return res
     
     def load_topics(self, filename="config.ini"):

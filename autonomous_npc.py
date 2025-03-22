@@ -3,7 +3,7 @@ from settings import *
 from support import *
 from timer import Timer
 from sprites import TextSprite, Interaction, QuestStatusSprite, QuestionMarkSprite
-from quest import TalkQuest, CollectQuest, QuestStatus
+from quest import TalkQuest, CollectQuest, QuestionQuest, QuestStatus
 from question import Question
 from system_message_template import CONVERSATIONAL_ROLE_TEMPLATE, ASSISTANT_ROLE_TEMPLATE, QUESTIONER_ROLE_TEMPLATE
 from pytmx.util_pygame import load_pygame
@@ -21,7 +21,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):
+    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):
         self.group = group
         super().__init__(group)
 
@@ -58,7 +58,8 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.timers =  {
             'tool use': Timer(1000),
             'seed use': Timer(1000),
-            'generate question': Timer(10000, self.llm_generate_question)
+            'generate question': Timer(10000, self.llm_generate_question),
+            'generate quest': Timer(10000, self.llm_generate_quest)
         }
          
         # inventory
@@ -94,9 +95,17 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # Quest
         self.quest = None
         self.quest_status_sprite = None
-        # if self.npc_attributes['name'] == "Alice":
-        #     quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
-        #     self.assign_quest(quest)
+        self.generating_quest = None
+        self.get_locations_with_topic = get_locations_with_topic
+        self.get_player_level = get_player_level        
+        if self.npc_attributes['name'] == "Alice":
+            # quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+            quest = QuestionQuest(
+                npc_name = self.npc_attributes['name'],
+                rewards = [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 
+                target_quantity = 1, 
+                question_topic = None)
+            self.assign_quest(quest)
         # else:
         #     quest = CollectQuest(self.npc_attributes['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
         #     self.assign_quest(quest)
@@ -104,7 +113,7 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         # Prompt template
         self.get_time = get_time
         self.get_weather = get_weather
-        self.get_location = get_location
+        self.get_location = get_location                # for npc to generate location-specific question
         self.prompt_template = PromptTemplate(
             input_variables=["query"],
             template=f"""
@@ -283,6 +292,27 @@ What is your response?
         
         return "question generated successfully"
     
+    def generate_quest(self, quantity: int, question_topic: str = None):
+        """
+        Generate a multiple-choice question for player to solve
+        
+        Args:
+            quantity: Number of questions to solve
+            question_topic: Topic of questions to solve
+        """
+        rewards = [{"experience": 8 * quantity}, {"money": 12 * quantity}]
+        print('------------------------------------------------------------------------------------------')
+        print(f"Quest Type: Question\nQuantity: {quantity}\nQuestion Topic: {question_topic}\nReward: {rewards}")
+        print('------------------------------------------------------------------------------------------')
+        quest = QuestionQuest(
+            npc_name = self.npc_attributes['name'],
+            rewards = rewards, 
+            target_quantity = quantity, 
+            question_topic = question_topic)
+        self.assign_quest(quest)
+        self.messages.append(f"generated a quest: {quantity}, {question_topic}")
+        return "quest generated successfully"
+    
     def timer_wrapper(self, duration):
         # Create delay in lang chain tools calling
         llm_timer = Timer(duration)
@@ -360,6 +390,8 @@ What is your response?
             StructuredTool.from_function(self.use_seed)]
         if self.npc_attributes.get('role', '') == "Questioner":
             tools.append(StructuredTool.from_function(self.generate_question))
+        if self.npc_attributes.get('role', '') == "Quest":
+            tools.append(StructuredTool.from_function(self.generate_quest))
         llm_with_tools = llm.bind_tools(tools, parallel_tool_calls=False)   # Run tool calling synchronously
         self.agent = create_react_agent(llm_with_tools, tools=tools)
     
@@ -426,6 +458,41 @@ Try to make a new question
         timer = threading.Timer(1, execute_llm)
         timer.start()
     
+    def llm_generate_quest(self):
+        print("Generating a quest ...")
+
+        topics = "\n".join(f"{location.topic} unlocked at level {location.level_unlock}" for location in self.get_locations_with_topic())
+        
+        prompt_template = PromptTemplate(
+            input_variables=["query"],
+            template="""
+Generate a new quest where player solve questions to complete it.
+Choose number of questions between 2 to 10.
+
+To generate a quest with topic, you have to ensure that player's level is at least the topic's level unlock.
+
+Here are the topics:
+{topics}
+
+Here is the player's current level: {player_level}
+
+Here is the past conversation history: {conversation_history}
+Try to make a new quest with different topics and quantity.
+            """)
+        
+        formatted_query = prompt_template.format(conversation_history = self.messages, topics = topics, player_level = self.get_player_level())
+ 
+        def execute_llm():
+            result = self.agent.invoke(
+                {"messages": formatted_query},
+                {"recursion_limit": 10}
+            )
+            
+            self.generating_quest = False
+        
+        timer = threading.Timer(1, execute_llm)
+        timer.start()
+    
     def scheduled_input(self, query):
         formatted_query = self.prompt_template.format(query=query)
         self.messages.append(HumanMessage(content=formatted_query))
@@ -460,13 +527,17 @@ Try to make a new question
                 self.question_sprite.kill()
             self.timers['generate question'].activate()
             self.generating_question = True
+        
+        if self.npc_attributes.get('role', '') == "Quest" and self.quest == None and not self.timers['generate quest'].active and not self.generating_quest:
+            self.timers['generate quest'].activate()
+            self.generating_quest = True
 
 class NPC_Manager:
-    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):
+    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):
         self.npcs = pygame.sprite.Group()
-        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location)
+        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level)
     
-    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location):    
+    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):    
         # Load NPC profiles from JSON
         with open("npc_profiles.json", "r") as file:
             npc_data = json.load(file)
@@ -476,7 +547,7 @@ class NPC_Manager:
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'NPC':
                 if obj.name in npc_data:
-                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location)
+                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level)
                     self.npcs.add(npc)
                 else:
                     print("NPC not found in json data")

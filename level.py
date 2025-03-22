@@ -64,6 +64,8 @@ class Level:
         self.npc_timer = Timer(500)
         
         self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event, self.location.get_locations)
+        
+        self.player_level = 1
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -77,7 +79,9 @@ class Level:
                                 soil_layer = self.soil_layer,
                                 get_time = self.get_time,
                                 get_weather = self.get_weather,
-                                get_location = self.location.get_location)
+                                get_location = self.location.get_location,
+                                get_locations_with_topic = self.location.get_locations_with_topic,
+                                get_player_level = self.get_player_level)
         
         # dialogue
         self.dialogue = Dialogue_Menu(get_npc_by_name = self.npc_manager.get_npc_by_name)
@@ -196,6 +200,9 @@ class Level:
     def get_weather(self):
         return "raining" if self.raining else "sunny"
 
+    def get_player_level(self):
+        return self.player_level
+
     def reset(self):
         # plants
         self.soil_layer.update_plants()
@@ -257,6 +264,8 @@ class Level:
         
         self.location.check_player_location(self.player)
         self.grid.update()
+        
+        self.player_level = self.player.level_system.level
         
         # Testing
         # keys = pygame.key.get_pressed()

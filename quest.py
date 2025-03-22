@@ -37,6 +37,8 @@ class Quest:
     @abstractmethod
     def update_progress(self, player):
         """Must be overridden by subclasses"""
+        """Initialise status to IN PROGRESS"""
+        """Initialise current state to count"""
         pass
 
     def grant_reward(self, player):
@@ -140,6 +142,43 @@ class InteractQuest(Quest):
             self.progress += (quantity - self.current_state)
             print(f'{self.progress}/{self.target_quantity}')
         self.current_state = quantity
+        
+        # Check for completion
+        if self.progress >= self.target_quantity:
+            self.status = QuestStatus.COMPLETED
+            print(self.status)
+            
+class QuestionQuest(Quest):
+    def __init__(self, npc_name, rewards, target_quantity=1, question_topic = None):
+        quest_name = "Solve questions"
+        if question_topic:
+            quest_description = f"Solve {target_quantity} questions of type {question_topic}"
+        else:
+            quest_description = f"Solve {target_quantity} questions"
+        super().__init__(npc_name, quest_name, quest_description, 'question', rewards)
+        self.question_topic = question_topic
+        self.target_quantity = target_quantity
+    
+    def start_quest(self, player):
+        # When accepted by player
+        if self.question_topic:
+            self.current_state = sum(1 for qn in player.completed_questions if getattr(qn, 'topic', None) == self.question_topic and getattr(qn, 'status', None) == "correct")
+        else:
+            self.current_state = sum(1 for qn in player.completed_questions if getattr(qn, 'status', "") == "correct")
+        self.status = QuestStatus.IN_PROGRESS
+    
+    def update_progress(self, player):
+        if self.status != QuestStatus.IN_PROGRESS:
+            return
+        
+        if self.question_topic:
+            question_count = sum(1 for qn in player.completed_questions if getattr(qn, 'topic', None) == self.question_topic and getattr(qn, 'status', None) == "correct")
+        else:
+            question_count = sum(1 for qn in player.completed_questions if getattr(qn, 'status', "") == "correct")
+        
+        if question_count > self.progress:
+            self.progress += (question_count - self.current_state)
+        self.current_state = question_count
         
         # Check for completion
         if self.progress >= self.target_quantity:
