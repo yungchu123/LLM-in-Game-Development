@@ -152,7 +152,7 @@ class QuestionQuest(Quest):
     def __init__(self, npc_name, rewards, target_quantity=1, question_topic = None):
         quest_name = "Solve questions"
         if question_topic:
-            quest_description = f"Solve {target_quantity} questions of type {question_topic}"
+            quest_description = f"Solve {target_quantity} questions on {question_topic} topic"
         else:
             quest_description = f"Solve {target_quantity} questions"
         super().__init__(npc_name, quest_name, quest_description, 'question', rewards)

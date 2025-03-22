@@ -98,14 +98,14 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.generating_quest = None
         self.get_locations_with_topic = get_locations_with_topic
         self.get_player_level = get_player_level        
-        if self.npc_attributes['name'] == "Alice":
-            # quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
-            quest = QuestionQuest(
-                npc_name = self.npc_attributes['name'],
-                rewards = [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 
-                target_quantity = 1, 
-                question_topic = None)
-            self.assign_quest(quest)
+        # if self.npc_attributes['name'] == "Alira Windell":
+        #     # quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
+        #     quest = QuestionQuest(
+        #         npc_name = self.npc_attributes['name'],
+        #         rewards = [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 
+        #         target_quantity = 1, 
+        #         question_topic = None)
+        #     self.assign_quest(quest)
         # else:
         #     quest = CollectQuest(self.npc_attributes['name'], "apple", "resource", [{"money": 100}, {"experience": 15}, {"name": "hoe", "type": "tool", "quantity": 1}], 1)
         #     self.assign_quest(quest)

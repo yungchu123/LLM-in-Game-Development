@@ -1,21 +1,12 @@
 {
-    "Alice": {
-        "name": "Alice",
+    "Alira Windell": {
+        "name": "Alira Windell",
         "role": "Quest",
         "gender": "Female",
         "likes": ["blueberries", "clear night skies", "reading"],
         "dislikes": ["rain", "loud noises", "spicy food"],
         "conversation": "Alice speaks softly but with a spark of curiosity, always eager to hear new tales and share legends of old.",
         "voice": "shimmer"
-    },
-    "Bob": {
-        "name": "Bob",
-        "role": "Quest",
-        "gender": "Male",
-        "likes": ["fresh bread", "morning dew", "fishing"],
-        "dislikes": ["waiting", "cold weather"],
-        "conversation": "Bob is a cheerful storyteller, often reminiscing about past adventures and sharing useful farming tips.",
-        "voice": "nova"
     },
     "Eldric Thornbrook": {
         "name": "Eldric Thornbrook",

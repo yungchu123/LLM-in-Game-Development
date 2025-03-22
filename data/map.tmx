@@ -599,8 +599,7 @@
  </objectgroup>
  <objectgroup id="30" name="NPC">
   <object id="362" name="Trader" type="Trader" gid="144" x="2600" y="2033.33" width="56" height="68"/>
-  <object id="385" name="Alice" type="NPC" gid="144" x="1572" y="2066" width="56" height="68"/>
-  <object id="386" name="Bob" type="NPC" gid="144" x="1786" y="2064" width="56" height="68"/>
+  <object id="385" name="Alira Windell" type="NPC" gid="144" x="1672" y="2062" width="56" height="68"/>
   <object id="387" name="Eldric Thornbrook" type="NPC" gid="144" x="1408" y="2542" width="56" height="68"/>
   <object id="388" name="Logan Woodsman" type="NPC" gid="144" x="1720.48" y="1597.64" width="56" height="68"/>
   <object id="392" name="Eli Sunfield" type="NPC" gid="144" x="978" y="1622" width="56" height="68"/>
