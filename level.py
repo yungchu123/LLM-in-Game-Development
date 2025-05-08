@@ -56,9 +56,9 @@ class Level:
         # audio
         self.success_sound = pygame.mixer.Sound('./audio/success.wav')
         self.success_sound.set_volume(0.3)
-        self.background_music = pygame.mixer.Sound('./audio/music.mp3')
-        self.background_music.set_volume(0.1)
+        self.background_music = pygame.mixer.Sound('./audio/main_bg.mp3')
         self.background_music.play(loops = -1)
+        self.current_bg_music = "main_bg.mp3"
         
         # Timer for npc
         self.npc_timer = Timer(500)
@@ -203,6 +203,29 @@ class Level:
     def get_player_level(self):
         return self.player_level
 
+    def set_bg_music(self, filename):
+        self.background_music.stop()
+
+        self.background_music = pygame.mixer.Sound(f'./audio/{filename}')
+
+        self.background_music.play(loops = -1)
+
+    def update_bg_music(self):
+        location_name = self.player.location.name
+     
+        if location_name == "Whispering Woods":
+            bg_music = "whispering_woods.mp3"
+        elif location_name == "Golden Meadow":
+            bg_music = "golden_meadow.mp3"
+        else:
+            bg_music = "main_bg.mp3"
+            
+        if self.current_bg_music == bg_music:
+            return
+        
+        self.set_bg_music(bg_music)
+        self.current_bg_music = bg_music # update previous state
+
     def reset(self):
         # plants
         self.soil_layer.update_plants()
@@ -266,6 +289,8 @@ class Level:
         self.grid.update()
         
         self.player_level = self.player.level_system.level
+        
+        self.update_bg_music()
         
         # Testing
         # keys = pygame.key.get_pressed()

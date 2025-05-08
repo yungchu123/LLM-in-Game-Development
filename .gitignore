@@ -32,7 +32,7 @@ assets/**/*.bak
 *.egg-info/
 *.cache/
 *.tmp
-*.mp3
+npc_dialogue.mp3
 
 # Generated files
 *.pyd
