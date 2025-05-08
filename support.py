@@ -1,11 +1,14 @@
 from os import walk
 import pygame
+import os
 
 # when the order of image surface matters
 def import_folder(path):
     surface_list = []
 
     for _, _, img_files in walk(path):
+        img_files.sort(key=lambda name: int(os.path.splitext(name)[0]))
+        
         for image in img_files:
             image_path  = path + '/' + image
             image_surface = pygame.image.load(image_path)

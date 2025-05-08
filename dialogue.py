@@ -10,7 +10,7 @@ load_dotenv(find_dotenv())
 from openai import OpenAI
 
 class Dialogue_Menu:
-    def __init__(self, get_npc_by_name):
+    def __init__(self, get_npc_by_name, set_is_buffering):
         
         # general setup
         self.display_surface = pygame.display.get_surface()
@@ -28,6 +28,8 @@ class Dialogue_Menu:
         
         self.npc = None
         self.get_npc_by_name = get_npc_by_name
+        
+        self.set_is_buffering = set_is_buffering
         
         # box dimensions for input box
         self.BOX_X = CHATBOX_MARGIN
@@ -265,8 +267,9 @@ class Dialogue_Menu:
         if message == "":
             return
         
-        self.generate_audio('npc_dialogue.mp3', message)
-        self.play_audio('npc_dialogue.mp3')
+        self.set_is_buffering(True)
+        timer = threading.Timer(1, self.generate_audio, args=['npc_dialogue.mp3', message])
+        timer.start()
 
     def generate_audio(self, filename, message): 
         response = self.client.audio.speech.create(
@@ -274,8 +277,10 @@ class Dialogue_Menu:
             voice=self.npc.npc_attributes['voice'],
             input=message
         )
-
         response.stream_to_file(filename)
+        
+        self.set_is_buffering(False)
+        self.play_audio('npc_dialogue.mp3')
 
     def play_audio(self, filename):
         # Stop existing audio from playing

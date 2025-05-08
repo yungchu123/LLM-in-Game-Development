@@ -66,6 +66,13 @@ class Level:
         self.grid = Grid(self.player, self.all_sprites, self.interaction_sprites, self.npc_manager.get_npc_by_name, self.announcer.start_event, self.location.get_locations)
         
         self.player_level = 1
+        
+        # Buffering animation
+        self.buffering_animation = import_folder('./graphics/objects/buffering')
+        self.buffering_frame_index = 0
+        self.buffering_image = self.buffering_animation[self.buffering_frame_index]
+        self.is_buffering = False
+        
 
     def setup(self):
         tmx_data = load_pygame('./data/map.tmx')
@@ -81,10 +88,11 @@ class Level:
                                 get_weather = self.get_weather,
                                 get_location = self.location.get_location,
                                 get_locations_with_topic = self.location.get_locations_with_topic,
-                                get_player_level = self.get_player_level)
+                                get_player_level = self.get_player_level,
+                                set_is_buffering = self.set_is_buffering)
         
         # dialogue
-        self.dialogue = Dialogue_Menu(get_npc_by_name = self.npc_manager.get_npc_by_name)
+        self.dialogue = Dialogue_Menu(get_npc_by_name = self.npc_manager.get_npc_by_name, set_is_buffering = self.set_is_buffering)
         
         # Player
         for obj in tmx_data.get_layer_by_name('Player'):
@@ -226,6 +234,20 @@ class Level:
         self.set_bg_music(bg_music)
         self.current_bg_music = bg_music # update previous state
 
+    def draw_buffering(self):
+        buffer_rect = self.buffering_image.get_rect(center=(80, 160))
+        self.display_surface.blit(self.buffering_image, buffer_rect)
+
+    def animate_buffering(self, dt):
+        self.buffering_frame_index += 50 * dt
+        if self.buffering_frame_index >= len(self.buffering_animation):
+            self.buffering_frame_index = 0
+
+        self.buffering_image = self.buffering_animation[int(self.buffering_frame_index)]
+
+    def set_is_buffering(self, bool):
+        self.is_buffering = bool
+
     def reset(self):
         # plants
         self.soil_layer.update_plants()
@@ -291,6 +313,10 @@ class Level:
         self.player_level = self.player.level_system.level
         
         self.update_bg_music()
+        
+        if self.is_buffering:
+            self.draw_buffering()
+            self.animate_buffering(dt)
         
         # Testing
         # keys = pygame.key.get_pressed()

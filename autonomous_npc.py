@@ -21,7 +21,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 class Autonomous_NPC(pygame.sprite.Sprite):
-    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):
+    def __init__(self, pos, attributes, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level, set_is_buffering):
         self.group = group
         super().__init__(group)
 
@@ -97,7 +97,9 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.quest_status_sprite = None
         self.generating_quest = None
         self.get_locations_with_topic = get_locations_with_topic
-        self.get_player_level = get_player_level        
+        self.get_player_level = get_player_level
+        
+        self.set_is_buffering = set_is_buffering             
         # if self.npc_attributes['name'] == "Alira Windell":
         #     # quest = CollectQuest(self.npc_attributes['name'], "hoe", "tool", [{"money": 100}, {"experience": 100}, {"name": "corn", "type": "resource", "quantity": 5}], 1)
         #     quest = QuestionQuest(
@@ -502,14 +504,16 @@ What is your response?
             {"recursion_limit": 10}
         )
         
-        for m in result['messages']:
-            m.pretty_print()
+        # for m in result['messages']:
+        #     m.pretty_print()
         ai_response = result['messages'][-1].content
         self.dialogue_message = ai_response
         self.messages.append(ai_response)
+        self.set_is_buffering(False)
     
     def get_user_input(self, query, delay=1.0):
         """Asychronous Feature: Schedules the get_input() function using a timer."""
+        self.set_is_buffering(True)
         timer = threading.Timer(delay, self.scheduled_input, args=[query])
         timer.start()
     
@@ -533,11 +537,11 @@ What is your response?
             self.generating_quest = True
 
 class NPC_Manager:
-    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):
+    def __init__(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level, set_is_buffering):
         self.npcs = pygame.sprite.Group()
-        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level)
+        self.setup(group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level, set_is_buffering)
     
-    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level):    
+    def setup(self, group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level, set_is_buffering):    
         # Load NPC profiles from JSON
         with open("npc_profiles.json", "r") as file:
             npc_data = json.load(file)
@@ -547,7 +551,7 @@ class NPC_Manager:
         for obj in tmx_data.get_layer_by_name('NPC'):
             if obj.type == 'NPC':
                 if obj.name in npc_data:
-                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level)
+                    npc = Autonomous_NPC((obj.x, obj.y), npc_data[obj.name], group, collision_sprites, tree_sprites, interaction_sprites, soil_layer, get_time, get_weather, get_location, get_locations_with_topic, get_player_level, set_is_buffering)
                     self.npcs.add(npc)
                 else:
                     print("NPC not found in json data")
