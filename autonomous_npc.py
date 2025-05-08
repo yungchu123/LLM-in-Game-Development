@@ -114,21 +114,6 @@ class Autonomous_NPC(pygame.sprite.Sprite):
         self.get_time = get_time
         self.get_weather = get_weather
         self.get_location = get_location                # for npc to generate location-specific question
-        self.prompt_template = PromptTemplate(
-            input_variables=["query"],
-            template=f"""
-Current time: {self.get_time()}
-Current weather: {self.get_weather()}
-                
-A player has come to you. Here is his prompt: {{query}}.
-                
-Rules:
-- Limit to 75 words
-- Do not use bullet points or markdown annotations.            
-
-What is your response?
-            """
-        )
     
     def __str__(self):
         return f"NPC Name: {self.npc_attributes['name']}"
@@ -301,9 +286,6 @@ What is your response?
             question_topic: Topic of questions to solve
         """
         rewards = [{"experience": 8 * quantity}, {"money": 12 * quantity}]
-        print('------------------------------------------------------------------------------------------')
-        print(f"Quest Type: Question\nQuantity: {quantity}\nQuestion Topic: {question_topic}\nReward: {rewards}")
-        print('------------------------------------------------------------------------------------------')
         quest = QuestionQuest(
             npc_name = self.npc_attributes['name'],
             rewards = rewards, 
@@ -423,36 +405,37 @@ What is your response?
         context_instruction = ""
         if self.enable_context:
             context_instruction = f"""
-Make context specific question
+Make context specific question.
 - Location: {location.name}
 - Occuputation: {self.npc_attributes['occupation']}
 - Phrase the question in first person perspective, using words like 'I' or 'me'.
+- Add a short story to the question
             """
         
         prompt_template = PromptTemplate(
             input_variables=["query"],
-            template=f"""
-Generate a new question with a topic on {location.topic}
+            template="""
+Generate a new question with a topic on {topic}
 
-{{context_instruction}}
+{context_instruction}
 
 Keep the hint to one sentence.
 Keep the explanation to not more than 70 words.
 For each options, use only strings (NO objects) and keep the length of string up to 24
 Do not use bullet points or markdown annotations.
 
-Here is the past conversation history: {{conversation_history}}    
+Here is the past conversation history: {conversation_history}   
 Try to make a new question
             """)
         
-        formatted_query = prompt_template.format(conversation_history = self.messages, context_instruction=context_instruction)
+        formatted_query = prompt_template.format(conversation_history = self.messages, context_instruction=context_instruction, topic=location.topic)
  
         def execute_llm():
             result = self.agent.invoke(
                 {"messages": formatted_query},
                 {"recursion_limit": 10}
             )
-            
+
             self.generating_question = False
         
         timer = threading.Timer(1, execute_llm)
@@ -494,7 +477,24 @@ Try to make a new quest with different topics and quantity.
         timer.start()
     
     def scheduled_input(self, query):
-        formatted_query = self.prompt_template.format(query=query)
+        prompt_template = PromptTemplate(
+            input_variables=["query"],
+            template="""
+Current time: {current_time}
+Current weather: {current_weather}
+                
+A player has come to you. Here is his prompt: {query}.
+Here is the past conversation history: {conversation_history}
+  
+Rules:
+- Limit to 75 words
+- Do not use bullet points or markdown annotations.            
+
+What is your response?
+            """
+        )
+        
+        formatted_query = prompt_template.format(query=query, current_time = self.get_time(), current_weather = self.get_weather(), conversation_history = self.messages)
         self.messages.append(HumanMessage(content=formatted_query))
 
         result = self.agent.invoke(
