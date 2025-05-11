@@ -176,8 +176,12 @@ class Dialogue_Menu:
             btn_color = GREY
             
             # an option has been selected by player
-            if i == self.npc.question.selected != -1:
+            if i == self.npc.question.selected:
                 btn_color = GREEN if self.npc.question.status == "correct" else RED
+                
+            # show correct option if player chose wrong
+            if self.npc.question.selected != -1 and str(self.npc.question.options[i]).strip().lower() == str(self.npc.question.correct_answer).strip().lower():
+                btn_color = GREEN
             
             # hide options if player unlock fifty fifty
             if self.npc.question.fifty_fifty_unlocked and i in self.npc.question.removed_options:
@@ -427,7 +431,6 @@ class Dialogue_Menu:
             self.question_active = True
             # self.message = self.npc.question.question_text
             self.update_message(self.npc.question.question_text)
-            self.option_colors = [GREY, GREY, GREY, GREY]
         elif quest and self.npc_has_quest():
             self.quest_active = True
             self.message = self.npc.quest.description
