@@ -225,6 +225,8 @@ class Level:
             bg_music = "whispering_woods.mp3"
         elif location_name == "Golden Meadow":
             bg_music = "golden_meadow.mp3"
+        elif location_name == "Waterworks":
+            bg_music = "waterworks.mp3"
         else:
             bg_music = "main_bg.mp3"
             
